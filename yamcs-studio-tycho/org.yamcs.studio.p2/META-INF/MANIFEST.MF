@@ -11,5 +11,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.equinox.p2.ui,
  org.eclipse.equinox.p2.metadata,
  org.eclipse.equinox.p2.operations,
- org.eclipse.ui
+ org.eclipse.ui,
+ org.eclipse.equinox.p2.ui.sdk,
+ org.eclipse.equinox.p2.ui.sdk.scheduler
 Eclipse-PlatformFilter: (| (osgi.ws=win32) (& (osgi.ws=cocoa)(osgi.arch=x86_64)) (osgi.ws=gtk))

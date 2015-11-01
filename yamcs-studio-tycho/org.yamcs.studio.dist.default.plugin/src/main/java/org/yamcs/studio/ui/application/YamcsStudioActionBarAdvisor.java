@@ -134,7 +134,7 @@ public class YamcsStudioActionBarAdvisor extends ActionBarAdvisor {
         // plugin.xml in css menu.app defines a non-brandable icon.
         // through plugin.xml in this bundle, that help menu is hidden, and
         // we replace it here with another one (shorter) version
-        IMenuManager helpMenu = new MenuManager("Help", "help-2");
+        IMenuManager helpMenu = new MenuManager("Help", "help");
         menubar.add(helpMenu);
         helpMenu.add(onlineHelpAction);
         helpMenu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
