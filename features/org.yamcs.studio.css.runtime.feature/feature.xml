@@ -2,15 +2,8 @@
 <feature
       id="org.yamcs.studio.css.runtime.feature"
       label="Yamcs CS-Studio Runtime Components"
-      version="1.0.0.qualifier"
+      version="1.2.6.qualifier"
       provider-name="Space Applications Services">
-
-   <plugin
-         id="org.csstudio.workspace"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
 
    <plugin
          id="org.csstudio.ui.util"
@@ -21,13 +14,6 @@
 
    <plugin
          id="org.csstudio.autocomplete"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.csstudio.autocomplete.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -151,5 +137,11 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="org.python.jython"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>

@@ -32,7 +32,7 @@ public class NewJavaScriptWizard extends Wizard implements INewWizard {
 
     @Override
     public void addPages() {
-        jsFilePage =new NewJavaScriptWizardPage("JavaScriptFilePage", selection); //$NON-NLS-1$
+        jsFilePage =new NewJavaScriptWizardPage("JavaScriptFilePage", selection);
         addPage(jsFilePage);
     }
 
@@ -46,11 +46,11 @@ public class NewJavaScriptWizard extends Wizard implements INewWizard {
 
         try {
             workbench.getActiveWorkbenchWindow().getActivePage().openEditor(
-                    new FileEditorInput(file), "org.csstudio.opibuilder.jseditor");//$NON-NLS-1$
+                    new FileEditorInput(file), "org.csstudio.opibuilder.jseditor");
         } catch (PartInitException e) {
             MessageDialog.openError(null, "Open JavaScript File error",
                     "Failed to open the newly created JavaScript File. \n" + e.getMessage());
-            OPIBuilderPlugin.getLogger().log(Level.WARNING, "JS Editor error", e); //$NON-NLS-1$
+            OPIBuilderPlugin.getLogger().log(Level.WARNING, "JS Editor error", e);
         }
 
         return true;

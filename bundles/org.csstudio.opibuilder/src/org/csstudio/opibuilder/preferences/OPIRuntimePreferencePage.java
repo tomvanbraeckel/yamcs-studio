@@ -8,13 +8,12 @@
 package org.csstudio.opibuilder.preferences;
 
 import org.csstudio.opibuilder.OPIBuilderPlugin;
-import org.csstudio.opibuilder.preferences.PreferencesHelper.ConsolePopupLevel;
 import org.csstudio.simplepv.SimplePVLayer;
 import org.eclipse.jface.preference.BooleanFieldEditor;
-import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IntegerFieldEditor;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -33,9 +32,6 @@ import org.jdom.Verifier;
  */
 public class OPIRuntimePreferencePage extends FieldEditorPreferencePage
         implements IWorkbenchPreferencePage {
-
-    // private static final String RESTART_MESSAGE = "Changes only takes effect after restart.";
-    private static final String RESTART_MESSAGE = "Changes only takes effect after restart.";
 
     private String wrongMacroName = "";
 
@@ -70,14 +66,14 @@ public class OPIRuntimePreferencePage extends FieldEditorPreferencePage
 
             @Override
             protected void doStore() {
-                if (!isValid())
+                if (!isValid()) {
                     return;
+                }
                 super.doStore();
             }
 
             @Override
-            protected void doFillIntoGrid(Composite parent,
-                    int numColumns) {
+            protected void doFillIntoGrid(Composite parent, int numColumns) {
                 super.doFillIntoGrid(parent, numColumns);
                 tableEditor.getTableViewer().getTable().addKeyListener(new KeyAdapter() {
                     @Override
@@ -136,31 +132,14 @@ public class OPIRuntimePreferencePage extends FieldEditorPreferencePage
             entries[i][0] = allPVFactories[i];
             entries[i][1] = allPVFactories[i];
         }
-        ComboFieldEditor pvConnectionLayerEditor = new ComboFieldEditor(PreferencesHelper.PV_CONNECTION_LAYER,
-                "PV Connection Layer", entries, parent);
-        addField(pvConnectionLayerEditor);
 
-        ComboFieldEditor popupConsoleEditor = new ComboFieldEditor(PreferencesHelper.POPUP_CONSOLE,
-                "Console Popup Level", new String[][] {
-                        { "Error, Warning and Info", ConsolePopupLevel.ALL.toString() },
-                        { "Only Info", ConsolePopupLevel.ONLY_INFO.toString() },
-                        { "Don't Popup", ConsolePopupLevel.NO_POP.toString() } },
-                parent);
-        addField(popupConsoleEditor);
-
-        BooleanFieldEditor showCompactModeDialogEditor = new BooleanFieldEditor(
-                PreferencesHelper.SHOW_COMPACT_MODE_DIALOG,
-                "Show tip dialog about how to exit compact mode", parent);
-        addField(showCompactModeDialogEditor);
+        StringFieldEditor pythonPathEditor = new StringFieldEditor(PreferencesHelper.PYTHON_PATH, "PYTHONPATH", parent);
+        pythonPathEditor.getTextControl(parent).setToolTipText("The path to search python modules");
+        addField(pythonPathEditor);
 
         BooleanFieldEditor showFullScreenDialogEditor = new BooleanFieldEditor(PreferencesHelper.SHOW_FULLSCREEN_DIALOG,
                 "Show tip dialog about how to exit fullscreen", parent);
         addField(showFullScreenDialogEditor);
-
-        BooleanFieldEditor startWindowInCompactEditor = new BooleanFieldEditor(
-                PreferencesHelper.START_WINDOW_IN_COMPACT_MODE,
-                "Start application window in compact mode.", parent);
-        addField(startWindowInCompactEditor);
     }
 
     @Override
@@ -175,10 +154,11 @@ public class OPIRuntimePreferencePage extends FieldEditorPreferencePage
         if (src instanceof FieldEditor) {
             String prefName = ((FieldEditor) src).getPreferenceName();
             if (prefName.equals(PreferencesHelper.RUN_MACROS)) {
-                if ((Boolean) event.getNewValue())
+                if ((Boolean) event.getNewValue()) {
                     setMessage(null);
-                else
+                } else {
                     setMessage(wrongMacroName + " is not a valid Macro name!", ERROR);
+                }
             }
         }
     }
@@ -186,8 +166,9 @@ public class OPIRuntimePreferencePage extends FieldEditorPreferencePage
     @Override
     public boolean performOk() {
         macrosEditor.tableEditor.getTableViewer().getTable().forceFocus();
-        if (!isValid())
+        if (!isValid()) {
             return false;
+        }
         return super.performOk();
     }
 

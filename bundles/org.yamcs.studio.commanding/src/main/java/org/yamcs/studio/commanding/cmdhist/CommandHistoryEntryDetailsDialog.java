@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -22,12 +23,14 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
 
     private SashForm sashForm;
 
-    private Label sourceLabel;
-    private Label dateLabel;
+    private StyledText originLabel;
+    private StyledText dateLabel;
+    private StyledText userLabel;
     private Label completedImageLabel;
     private Label completedLabel;
-    private Label sourceIdLabel;
-    private Label binaryLabel;
+    private StyledText originIdLabel;
+    private StyledText binaryLabel;
+    private StyledText commentLabel;
     private Text commandStringText;
 
     private Button prevButton;
@@ -39,7 +42,7 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
     private CommandHistoryRecord previousRec;
     private CommandHistoryRecord nextRec;
 
-    private VerificationStepsTableViewer tableViewer;
+    private StagesTableViewer tableViewer;
 
     public CommandHistoryEntryDetailsDialog(Shell shell, CommandHistoryView commandHistoryView,
             CommandHistoryRecord rec) {
@@ -115,7 +118,7 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
 
         createSashForm(container);
         createDetailsSection(sashForm);
-        createVerificationSection(sashForm);
+        createStagesSection(sashForm);
 
         sashForm.setWeights(new int[] { 300, 400 });
 
@@ -149,25 +152,25 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
         createToolbarButtonBar(container);
     }
 
-    private void createVerificationSection(Composite parent) {
-        Composite verificationContainer = new Composite(parent, SWT.NONE);
+    private void createStagesSection(Composite parent) {
+        Composite stagesContainer = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout();
         layout.marginWidth = 0;
-        verificationContainer.setLayout(layout);
-        verificationContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+        stagesContainer.setLayout(layout);
+        stagesContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        Label verificationLabel = new Label(verificationContainer, SWT.NONE);
-        verificationLabel.setText("Verification Steps:");
+        Label stagesLabel = new Label(stagesContainer, SWT.NONE);
+        stagesLabel.setText("Stages:");
 
-        createVerificationTable(verificationContainer);
+        createStagesTable(stagesContainer);
     }
 
-    private void createVerificationTable(Composite parent) {
+    private void createStagesTable(Composite parent) {
         Composite tableContainer = new Composite(parent, SWT.NONE);
         tableContainer.setLayout(new FillLayout());
         tableContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        tableViewer = new VerificationStepsTableViewer(tableContainer, commandHistoryView);
+        tableViewer = new StagesTableViewer(tableContainer, commandHistoryView);
     }
 
     private void createTextSection(Composite parent) {
@@ -180,7 +183,9 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
 
         Label label = new Label(textContainer, SWT.NONE);
         label.setText("Date");
-        dateLabel = new Label(textContainer, SWT.NONE);
+        dateLabel = new StyledText(textContainer, SWT.NONE);
+        dateLabel.setEditable(false);
+        dateLabel.setCaret(null);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
         dateLabel.setLayoutData(gd);
@@ -193,25 +198,49 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
         completedLabel.setLayoutData(gd);
 
         label = new Label(textContainer, SWT.NONE);
-        label.setText("Source");
-        sourceLabel = new Label(textContainer, SWT.NONE);
+        label.setText("User");
+        userLabel = new StyledText(textContainer, SWT.NONE);
+        userLabel.setEditable(false);
+        userLabel.setCaret(null);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
-        sourceLabel.setLayoutData(gd);
+        userLabel.setLayoutData(gd);
 
         label = new Label(textContainer, SWT.NONE);
-        label.setText("Source ID");
-        sourceIdLabel = new Label(textContainer, SWT.NONE);
+        label.setText("Origin");
+        originLabel = new StyledText(textContainer, SWT.NONE);
+        originLabel.setEditable(false);
+        originLabel.setCaret(null);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
-        sourceIdLabel.setLayoutData(gd);
+        originLabel.setLayoutData(gd);
+
+        label = new Label(textContainer, SWT.NONE);
+        label.setText("Origin ID");
+        originIdLabel = new StyledText(textContainer, SWT.NONE);
+        originIdLabel.setEditable(false);
+        originIdLabel.setCaret(null);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 2;
+        originIdLabel.setLayoutData(gd);
 
         label = new Label(textContainer, SWT.NONE);
         label.setText("Binary");
-        binaryLabel = new Label(textContainer, SWT.NONE);
+        binaryLabel = new StyledText(textContainer, SWT.NONE);
+        binaryLabel.setEditable(false);
+        binaryLabel.setCaret(null);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
         binaryLabel.setLayoutData(gd);
+
+        label = new Label(textContainer, SWT.NONE);
+        label.setText("Comment");
+        commentLabel = new StyledText(textContainer, SWT.NONE);
+        commentLabel.setEditable(false);
+        commentLabel.setCaret(null);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 2;
+        commentLabel.setLayoutData(gd);
 
         label = new Label(textContainer, SWT.NONE);
         label.setText("Command String");
@@ -259,8 +288,21 @@ public class CommandHistoryEntryDetailsDialog extends TrayDialog {
     private void updateProperties() {
         dateLabel.setText(rec.getGenerationTime());
         commandStringText.setText(rec.getCommandString());
-        sourceLabel.setText(rec.getUsername() + "@" + rec.getOrigin());
-        sourceIdLabel.setText(String.valueOf(rec.getSequenceNumber()));
+
+        userLabel.setText(rec.getUsername());
+
+        if (rec.getOrigin() != null && !"".equals(rec.getOrigin())) {
+            originLabel.setText(rec.getOrigin());
+        } else {
+            originLabel.setText("-");
+        }
+        originIdLabel.setText(String.valueOf(rec.getSequenceNumber()));
+
+        if (rec.getComment() != null) {
+            commentLabel.setText(rec.getComment());
+        } else {
+            commentLabel.setText("-");
+        }
 
         switch (rec.getCommandState()) {
         case COMPLETED:

@@ -93,69 +93,69 @@ public abstract class AbstractWidgetModel implements IAdaptable,
     /**
      * The Name of the widget.
      */
-    public static final String PROP_NAME = "name";//$NON-NLS-1$
+    public static final String PROP_NAME = "name";
 
     /**
      * Scripts attached to the widget.
      */
-    public static final String PROP_SCRIPTS = "scripts";//$NON-NLS-1$
+    public static final String PROP_SCRIPTS = "scripts";
 
     /**
      * Rules attached to the widget.
      */
-    public static final String PROP_RULES = "rules";//$NON-NLS-1$
+    public static final String PROP_RULES = "rules";
 
     /**
      * X position of the widget.
      */
-    public static final String PROP_XPOS = "x";//$NON-NLS-1$
+    public static final String PROP_XPOS = "x";
 
     /**
      * Y position of the widget.
      */
-    public static final String PROP_YPOS = "y";//$NON-NLS-1$
+    public static final String PROP_YPOS = "y";
 
     /**
      * Width of the widget.
      */
-    public static final String PROP_WIDTH = "width";//$NON-NLS-1$
+    public static final String PROP_WIDTH = "width";
 
     /**
      * Height of the widget.
      */
-    public static final String PROP_HEIGHT = "height";//$NON-NLS-1$
+    public static final String PROP_HEIGHT = "height";
 
     /**
      * Background color.
      */
-    public static final String PROP_COLOR_BACKGROUND = "background_color";//$NON-NLS-1$
+    public static final String PROP_COLOR_BACKGROUND = "background_color";
 
     /**
      * Foreground color.
      */
-    public static final String PROP_COLOR_FOREGROUND = "foreground_color";//$NON-NLS-1$
+    public static final String PROP_COLOR_FOREGROUND = "foreground_color";
 
     /**
      * Foreground color.
      */
-    public static final String PROP_FONT = "font";//$NON-NLS-1$
+    public static final String PROP_FONT = "font";
 
     /**
      * Visibility of the widget.
      */
-    public static final String PROP_VISIBLE = "visible";//$NON-NLS-1$
+    public static final String PROP_VISIBLE = "visible";
 
     /**
      * Enable status. Only effective for control widgets which will make control widget
      * uncontrollable if this is false.
      */
-    public static final String PROP_ENABLED = "enabled";//$NON-NLS-1$
+    public static final String PROP_ENABLED = "enabled";
 
     /**
      * Actions attached to the widget, which can be accessed on runtime
      * via context menu <code>Actions</code>.
      */
-    public static final String PROP_ACTIONS = "actions";//$NON-NLS-1$
+    public static final String PROP_ACTIONS = "actions";
 
     /**
      * Tooltip of the widget, which will show up when mouse hover on the widget.
@@ -163,48 +163,48 @@ public abstract class AbstractWidgetModel implements IAdaptable,
      * The property macro $(pv_value) could be used to show the PV value which
      * has timestamp, value, severity and status.
      */
-    public static final String PROP_TOOLTIP = "tooltip"; //$NON-NLS-1$
+    public static final String PROP_TOOLTIP = "tooltip";
 
     /**
      * Color of border.
      */
-    public static final String PROP_BORDER_COLOR = "border_color"; //$NON-NLS-1$
+    public static final String PROP_BORDER_COLOR = "border_color";
 
     /**
      * Width of border.
      */
-    public static final String PROP_BORDER_WIDTH = "border_width"; //$NON-NLS-1$
+    public static final String PROP_BORDER_WIDTH = "border_width";
     /**
      * Style of border.
      */
-    public static final String PROP_BORDER_STYLE = "border_style"; //$NON-NLS-1$
+    public static final String PROP_BORDER_STYLE = "border_style";
 
     /**
      *The type of the widget. This is the only property that cannot be edited.
      *The name and type of the selected widget will also be displayed on the status bar.
      */
-    public static final String PROP_WIDGET_TYPE= "widget_type"; //$NON-NLS-1$
+    public static final String PROP_WIDGET_TYPE= "widget_type";
 
     /**
      * Unique ID of the widget, it should not be changed after generated.
      */
-    public static final String PROP_WIDGET_UID = "wuid"; ////$NON-NLS-1$
+    public static final String PROP_WIDGET_UID = "wuid"; //
 
     /**
      * Source Connections.
      */
-    public static final String PROP_SRC_CONNECTIONS = "src_connections"; //$NON-NLS-1$
+    public static final String PROP_SRC_CONNECTIONS = "src_connections";
 
     /**
      * Target Connections.
      */
-    public static final String PROP_TGT_CONNECTIONS = "tgt_connections"; //$NON-NLS-1$
+    public static final String PROP_TGT_CONNECTIONS = "tgt_connections";
 
 
     /**
      *The options for its scale behavior.
      */
-    public static final String PROP_SCALE_OPTIONS = "scale_options"; //$NON-NLS-1$
+    public static final String PROP_SCALE_OPTIONS = "scale_options";
 
 
 

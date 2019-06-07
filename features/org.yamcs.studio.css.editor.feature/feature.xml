@@ -2,15 +2,8 @@
 <feature
       id="org.yamcs.studio.css.editor.feature"
       label="Yamcs CS-Studio Editor Components"
-      version="1.0.0.qualifier"
+      version="1.2.6.qualifier"
       provider-name="Space Applications Services">
-
-   <plugin
-         id="org.csstudio.workspace"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
 
    <plugin
          id="org.csstudio.ui.util"
@@ -21,13 +14,6 @@
 
    <plugin
          id="org.csstudio.autocomplete"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.csstudio.autocomplete.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -153,13 +139,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.yamcs.studio.css.theming"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.yamcs.studio.css.script"
          download-size="0"
          install-size="0"
@@ -231,13 +210,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.apache.batik.ext"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.apache.xmlgraphics"
          download-size="0"
          install-size="0"
@@ -260,6 +232,26 @@
 
    <plugin
          id="org.apache.commons.logging"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.python.jython"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.csstudio.swt.widgets"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.batik.codec"
          download-size="0"
          install-size="0"
          version="0.0.0"

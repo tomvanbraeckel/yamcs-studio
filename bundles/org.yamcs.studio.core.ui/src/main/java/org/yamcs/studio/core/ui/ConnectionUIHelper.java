@@ -3,8 +3,7 @@ package org.yamcs.studio.core.ui;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,7 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.yamcs.api.YamcsConnectionProperties;
 import org.yamcs.studio.core.YamcsConnectionListener;
 import org.yamcs.studio.core.YamcsPlugin;
-import org.yamcs.studio.core.client.YamcsClient;
+import org.yamcs.studio.core.client.YamcsStudioClient;
 import org.yamcs.studio.core.ui.utils.RCPUtils;
 
 public class ConnectionUIHelper implements YamcsConnectionListener {
@@ -57,6 +56,7 @@ public class ConnectionUIHelper implements YamcsConnectionListener {
             YamcsUIConnector connector = new YamcsUIConnector(shell, yprops);
             new ProgressMonitorDialog(shell).run(true, true, connector);
         } catch (InvocationTargetException e) {
+            log.log(Level.SEVERE, "Failed to connect", e);
             MessageDialog.openError(shell, "Failed to connect", e.getMessage());
         } catch (InterruptedException e) {
             log.info("Connection attempt cancelled");
@@ -76,20 +76,10 @@ public class ConnectionUIHelper implements YamcsConnectionListener {
         @Override
         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
             monitor.beginTask("Connecting to " + yprops, IProgressMonitor.UNKNOWN);
-            YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
+            YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
             try {
                 Future<YamcsConnectionProperties> future = yamcsClient.connect(yprops);
-                while (!monitor.isCanceled() && !future.isDone()) {
-                    try {
-                        future.get(200, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
-                        // Keep trying until cancelled or connected
-                    }
-                }
-
-                if (monitor.isCanceled()) {
-                    future.cancel(true);
-                }
+                RCPUtils.monitorCancellableFuture(monitor, future);
             } catch (ExecutionException e) {
                 MessageDialog.openError(shell, "Failed to connect", e.getMessage());
             }

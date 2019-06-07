@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="org.yamcs.studio"
+            name="Yamcs">
+      </category>
+      <command
+            categoryId="org.yamcs.studio"
+            id="org.yamcs.studio.editor.base.xtce.import"
+            name="Import XTCE File">
+      </command>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.yamcs.studio.editor.base.views.ImportXTCEFileHandler"
+            commandId="org.yamcs.studio.editor.base.xtce.import">
+      </handler>
+   </extension>
+
    <extension
          point="org.eclipse.ui.views">
       <view
@@ -9,51 +31,23 @@
             id="org.yamcs.studio.editor.base.views.FunctionsView"
             name="Function Reference">
       </view>
+      <view
+            class="org.yamcs.studio.editor.base.views.ParametersView"
+            icon="icons/eview16/bkmrk_nav.png"
+            id="org.yamcs.studio.editor.base.views.ParametersView"
+            name="Parameters">
+      </view>
    </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-         <separator
-               name="css"
-               visible="true">
-         </separator>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:org.eclipse.ui.popup.any?after=css">
-         <menu
-               icon="platform:/plugin/org.csstudio.ui.util/icons/processVariable.png"
-               id="org.csstudio.ui.menu.popup.processvariable"
-               label="Process Variable">
-            <visibleWhen>
-               <or>
-                  <with variable="activeMenuSelection">
-                     <iterate>
-                        <adapt type="org.csstudio.csdata.ProcessVariable"/>
-                     </iterate>
-                     <and>
-                        <count value="+"/>
-                     </and>
-                  </with>
-                  <with
-                        variable="activeMenuSelection">
-                     <iterate>
-                        <adapt
-                              type="[Lorg.csstudio.csdata.ProcessVariable;">
-                        </adapt>
-                     </iterate>
-                     <and>
-                        <count value="+"/>
-                     </and>
-                  </with>
-               </or>
-            </visibleWhen>
-            <separator
-                  name="main">
-            </separator>
-         </menu>
+   
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="toolbar:org.yamcs.studio.editor.base.views.ParametersView">
+         <command
+               commandId="org.yamcs.studio.editor.base.xtce.import"
+               icon="icons/elcl16/import_log.png"
+               disabledIcon="icons/dlcl16/import_log.png"
+               label="Import XTCE File"
+               style="push"/>
+         <control class="org.yamcs.studio.core.ui.utils.ToolbarSpacer"/>
       </menuContribution>
    </extension>
 </plugin>

@@ -3,10 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: SWT/JFace utilities
 Bundle-Description: Helper classes for Drag-and-Drop support, adapting selections, ...
 Bundle-SymbolicName: org.csstudio.ui.util
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.2.6.qualifier
 Bundle-Vendor: Gabriele Carcassi <carcassi@bnl.gov>, Kay Kasemir <kasemirk@ornl.gov> - BNL, SNS
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Require-Bundle: org.csstudio.autocomplete.ui,
+Require-Bundle: org.csstudio.autocomplete,
  org.eclipse.core.runtime,
  org.eclipse.jface,
  org.eclipse.ui.workbench,
@@ -24,7 +24,7 @@ Export-Package: org.csstudio.csdata,
  org.csstudio.ui.util.swt.stringtable,
  org.csstudio.ui.util.thread,
  org.csstudio.ui.util.widgets,
- org.csstudio.ui.util.wizards,
- org.eclipse.wb.swt
+ org.csstudio.ui.util.wizards
 Bundle-Activator: org.csstudio.ui.util.Activator
 Bundle-ActivationPolicy: lazy
+Automatic-Module-Name: org.csstudio.ui.util

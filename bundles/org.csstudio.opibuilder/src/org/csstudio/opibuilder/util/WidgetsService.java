@@ -30,7 +30,7 @@ import org.eclipse.core.runtime.Platform;
  */
 public final class WidgetsService {
 
-    private static final String BOY_WIDGETS_PLUGIN_NAME = "org.csstudio.opibuilder.widgets";//$NON-NLS-1$
+    private static final String BOY_WIDGETS_PLUGIN_NAME = "org.csstudio.opibuilder.widgets";
 
     /**
      * The shared instance of this class.
@@ -82,10 +82,10 @@ public final class WidgetsService {
         }
         boyElements.addAll(otherElements);
         for(IConfigurationElement element : boyElements){
-            String typeId = element.getAttribute("typeId"); //$NON-NLS-1$
-            String name = element.getAttribute("name"); //$NON-NLS-1$
-            String icon = element.getAttribute("icon"); //$NON-NLS-1$
-            String onlineHelpHtml = element.getAttribute("onlineHelpHtml"); ////$NON-NLS-1$
+            String typeId = element.getAttribute("typeId");
+            String name = element.getAttribute("name");
+            String icon = element.getAttribute("icon");
+            String onlineHelpHtml = element.getAttribute("onlineHelpHtml"); //
             String pluginId = element.getDeclaringExtension()
                     .getNamespaceIdentifier();
             String description = element.getAttribute("description");
@@ -115,7 +115,6 @@ public final class WidgetsService {
         //    Collections.sort(list);
     }
 
-    @SuppressWarnings("nls")
     private void loadAllFeedbackFactories(){
         IExtensionRegistry extReg = Platform.getExtensionRegistry();
         IConfigurationElement[] confElements =

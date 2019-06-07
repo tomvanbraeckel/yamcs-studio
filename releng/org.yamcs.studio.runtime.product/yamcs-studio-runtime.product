@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Yamcs Studio Runtime" uid="yamcs-studio-runtime" id="org.yamcs.studio.runtime.product" application="org.yamcs.studio.runtime.application" version="1.0.0.qualifier" useFeatures="true" includeLaunchers="true">
+<product name="Yamcs Studio Runtime" uid="yamcs-studio-runtime" id="org.yamcs.studio.runtime.product" application="org.yamcs.studio.runtime.application" version="1.2.6.qualifier" useFeatures="true" includeLaunchers="true">
 
    <aboutInfo>
       <image path="/org.yamcs.studio.runtime/icons/aboutSide.png"/>
       <text>
          Rich desktop client for Yamcs - The Open Source Mission Control System
 
-See http://www.yamcs.org
+See https://www.yamcs.org
       </text>
    </aboutInfo>
 
@@ -16,6 +16,12 @@ See http://www.yamcs.org
    </configIni>
 
    <launcherArgs>
+      <vmArgs>-Xmx1024m
+-Declipse.p2.unsignedPolicy=allow
+-Duser.timezone=GMT
+-Dosgi.requiredJavaVersion=1.8
+--add-modules=ALL-SYSTEM
+      </vmArgs>
       <vmArgsMac>-Dorg.eclipse.swt.internal.carbon.smallFonts
 -XstartOnFirstThread
       </vmArgsMac>
@@ -23,12 +29,11 @@ See http://www.yamcs.org
 
    <windowImages i16="/org.yamcs.studio.runtime/icons/logo16.png" i32="/org.yamcs.studio.runtime/icons/logo32.png" i48="/org.yamcs.studio.runtime/icons/logo48.png" i64="/org.yamcs.studio.runtime/icons/logo64.png" i128="/org.yamcs.studio.runtime/icons/logo128.png" i256="/org.yamcs.studio.runtime/icons/logo256.png"/>
 
-
    <launcher name="Yamcs Studio Runtime">
-      <linux icon="/launcher/css.xpm"/>
-      <macosx icon="/launcher/css.icns"/>
+      <linux icon="/launcher/yamcs.xpm"/>
+      <macosx icon="/launcher/yamcs.icns"/>
       <win useIco="true">
-         <ico path="/launcher/css.ico"/>
+         <ico path="/launcher/yamcs.ico"/>
          <bmp/>
       </win>
    </launcher>
@@ -112,7 +117,7 @@ For details, see http://www.eclipse.org/legal/epl-v10.html
       <plugin id="org.eclipse.equinox.app"/>
       <plugin id="org.eclipse.equinox.common"/>
       <plugin id="org.eclipse.equinox.concurrent"/>
-      <plugin id="org.eclipse.equinox.ds"/>
+      <plugin id="org.apache.felix.scr"/>
       <plugin id="org.eclipse.equinox.event"/>
       <plugin id="org.eclipse.equinox.preferences"/>
       <plugin id="org.eclipse.equinox.registry"/>
@@ -141,7 +146,7 @@ For details, see http://www.eclipse.org/legal/epl-v10.html
    <configurations>
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
+      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
    </configurations>

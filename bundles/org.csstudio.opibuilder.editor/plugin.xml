@@ -8,7 +8,7 @@
             class="org.csstudio.opibuilder.editor.OPIEditor"
             contributorClass="org.csstudio.opibuilder.editor.OPIEditorActionBarContributor"
             extensions="opi"
-            icon="icons/OPIBuilder.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.OPIEditor"
             name="OPI Builder">
       </editor>
@@ -36,7 +36,19 @@
             categoryId="org.eclipse.ui.category.edit"
             description="Run the OPI file currently in the editor"
             id="org.csstudio.opibuilder.runopi"
-            name="Launch Display Runner">
+            name="Open workspace in Display Runner">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.edit"
+            description="Open Display Builder"
+            id="org.csstudio.opibuilder.editopi"
+            name="Open workspace in Display Builder">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.edit"
+            description="Run the OPI file currently in the editor"
+            id="org.csstudio.opibuilder.runopi_old"
+            name="Open workspace in Display Runner">
       </command>
       <command
             categoryId="org.eclipse.ui.category.edit"
@@ -80,11 +92,27 @@
    <extension
          point="org.eclipse.ui.bindings">
       <key
-            commandId="org.csstudio.opibuilder.runopi"
+            commandId="org.csstudio.opibuilder.editopi"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+1">
+      </key>
+      <!-- M1-G is the old shortcut, keeping around for now. Maybe could turn
+           into some generic switch (either run-to-edit or edit-to-run), but not
+           sure yet. -->
+      <key
+            commandId="org.csstudio.opibuilder.runopi_old"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+G">
       </key>
+      <key
+            commandId="org.csstudio.opibuilder.runopi"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+2">
+      </key>
+      
       <key
             commandId="org.csstudio.opibuilder.actions.TO_FRONT"
             contextId="org.csstudio.opibuilder.opiEditor"
@@ -121,8 +149,8 @@
       <page
             category="org.csstudio.opibuilder.preferences"
             class="org.csstudio.opibuilder.preferences.OPIEditorPreferencePage"
-            id="org.csstudio.opibuilder.preferences.opieditor"
-            name="OPI Builder">
+            id="org.csstudio.opibuilder.preferences.editor"
+            name="Editor">
       </page>
    </extension>
    <extension
@@ -149,6 +177,15 @@
             id="org.csstudio.opibuilder.wizards.newJSWizard"
             name="JavaScript">
       </wizard>
+      <wizard
+            canFinishEarly="false"
+            category="org.csstudio.opibuilder.wizards"
+            class="org.csstudio.opibuilder.wizards.NewPythonScriptWizard"
+            hasPages="true"
+            icon="icons/python_file.gif"
+            id="org.csstudio.opibuilder.wizards.newPyWizard"
+            name="Python Script">
+      </wizard>
    </extension>
    <extension
          point="org.eclipse.ui.contexts">
@@ -170,7 +207,29 @@
                toolbarPath="Normal/additions"
                id="org.csstudio.opibuilder.runOPIAction"
                icon="icons/run.gif"
-               label="Launch Display Runner"
+               label="Open Display Runner"
+               style="push">
+         </action>
+         <!-- Same class as org.csstudio.opibuilder.runopi action. This one uses a different shortcut -->
+         <action
+               class="org.csstudio.opibuilder.actions.RunOPIAction"
+               definitionId="org.csstudio.opibuilder.runopi_old"
+               id="org.csstudio.opibuilder.runOPIAction_old"
+               label="Open Display Runner"
+               style="push">
+         </action>
+      </actionSet>
+      <actionSet
+            id="org.csstudio.opibuilder.editor.runtimeActionSet"
+            label="OPI Builder Actions for Runtime Mode"
+            visible="false">
+         <action
+               class="org.csstudio.opibuilder.actions.EditOPIAction"
+               definitionId="org.csstudio.opibuilder.editopi"
+               toolbarPath="Normal/additions"
+               id="org.csstudio.opibuilder.editOPIAction"
+               icon="icons/placeholder.gif"
+               label="Open Display Builder"
                style="push">
          </action>
       </actionSet>
@@ -228,14 +287,15 @@
    </extension>
    <extension
          point="org.eclipse.ui.decorators">
+      <!-- (FDI) Deactivated. Perhaps should remove. Image size for an icon is really low -->
       <decorator
             adaptable="true"
             class="org.csstudio.opibuilder.tools.thumbnails.ImageIconDecorator"
             id="ImageIcons.decorator"
-            label="Image Icon Decorator"
+            label="File icons based on image preview"
             lightweight="false"
             location="BOTTOM_RIGHT"
-            state="true">
+            state="false">
          <enablement>
             <or>
                <objectClass
@@ -246,6 +306,26 @@
                </objectClass>
             </or>
          </enablement>
+         <description>
+            Displays an image of an image file as its icon.
+         </description>
+      </decorator>
+   </extension>
+   <extension point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="true"
+            id="org.csstudio.opibuilder.SchemaDecorator"
+            label="Active OPI Schema"
+            state="true"
+            lightweight="true"
+            class="org.csstudio.opibuilder.editor.SchemaDecorator"
+            location="TOP_RIGHT">
+         <enablement>
+            <objectClass name="org.eclipse.core.resources.IFile"/>
+         </enablement>
+         <description>
+            Adds an icon decoration to an OPI display if that display is the active schema.
+         </description>
       </decorator>
    </extension>
 </plugin>

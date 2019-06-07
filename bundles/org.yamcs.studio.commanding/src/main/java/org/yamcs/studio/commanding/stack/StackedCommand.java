@@ -4,10 +4,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
@@ -20,8 +23,8 @@ import org.yamcs.protobuf.Mdb.CommandInfo;
 import org.yamcs.protobuf.Rest.IssueCommandRequest;
 import org.yamcs.protobuf.Rest.IssueCommandRequest.Assignment;
 import org.yamcs.protobuf.Yamcs.NamedObjectId;
-import org.yamcs.studio.core.model.CommandingCatalogue;
 import org.yamcs.studio.commanding.PTVInfo;
+import org.yamcs.studio.core.model.CommandingCatalogue;
 
 /**
  * Keep track of the lifecycle of a stacked command.
@@ -42,12 +45,13 @@ public class StackedCommand {
         private StackedState(String text) {
             this.text = text;
         }
-
+        
         public String getText() {
             return text;
         }
     }
 
+    private int delayMs = 0;
     private CommandInfo meta;
     private Map<ArgumentInfo, String> assignments = new HashMap<>();
 
@@ -98,24 +102,28 @@ public class StackedCommand {
         for (ArgumentInfo arg : meta.getArgumentList()) {
             String value = getAssignedStringValue(arg);
 
-            if (value == null && arg.hasInitialValue())
+            if (value == null && arg.hasInitialValue()) {
                 continue;
+            }
 
-            if (!first)
+            if (!first) {
                 str.append("\n, ", bracketStyler);
+            }
             first = false;
             str.append(arg.getName() + ": ", argNameSyler);
 
             if (value == null) {
                 str.append("  ", errorStyler);
             } else {
-                boolean needQuotationMark = ArgumentTableBuilder.STRING.equals(arg.getType().getEngType())
-                        || ArgumentTableBuilder.ENUM.equals(arg.getType().getEngType());
-                if (needQuotationMark)
+                boolean needQuotationMark = "string".equals(arg.getType().getEngType())
+                        || "enumeration".equals(arg.getType().getEngType());
+                if (needQuotationMark) {
                     str.append("\"", isValid(arg) ? numberStyler : errorStyler);
+                }
                 str.append(value, isValid(arg) ? numberStyler : errorStyler);
-                if (needQuotationMark)
+                if (needQuotationMark) {
                     str.append("\"", isValid(arg) ? numberStyler : errorStyler);
+                }
             }
         }
         str.append(")", bracketStyler);
@@ -131,20 +139,30 @@ public class StackedCommand {
     }
 
     /**
-     * Generates a REST-representation. The sequence number is increased everytime this method is
-     * called, and therefore represents an 'issue attempt'.
+     * Generates a REST-representation. The sequence number is increased everytime this method is called, and therefore
+     * represents an 'issue attempt'.
      */
     public IssueCommandRequest.Builder toIssueCommandRequest() {
         IssueCommandRequest.Builder req = IssueCommandRequest.newBuilder();
         req.setSequenceNumber(CommandingCatalogue.getInstance().getNextCommandClientId());
         req.setOrigin(CommandingCatalogue.getInstance().getCommandOrigin());
-        if (comment != null)
+        if (comment != null) {
             req.setComment(comment);
+        }
         assignments.forEach((k, v) -> {
             req.addAssignment(Assignment.newBuilder().setName(k.getName()).setValue(v));
         });
 
         return req;
+    }
+    
+
+    public void setDelayMs(int delayMs) {
+        this.delayMs = delayMs;
+    }
+    
+    public int getDelayMs() {
+        return this.delayMs;
     }
 
     public void setMetaCommand(CommandInfo meta) {
@@ -181,7 +199,7 @@ public class StackedCommand {
         List<CommandInfo> hierarchy = new ArrayList<>();
         hierarchy.add(meta);
         CommandInfo base = meta;
-        while (base.getBaseCommand() != null) {
+        while (base.hasBaseCommand()) {
             base = base.getBaseCommand();
             hierarchy.add(0, base);
         }
@@ -190,31 +208,30 @@ public class StackedCommand {
         for (CommandInfo cmd : hierarchy) {
             // Set all values, even if null initial value. This gives us consistent ordering
             for (ArgumentInfo argument : cmd.getArgumentList()) {
-                String name = argument.getName();
-                String value = argument.hasInitialValue() ? argument.getInitialValue() : null;
                 boolean editable = true;
-                argumentsByName.put(name, new TelecommandArgument(name, value, editable));
+                argumentsByName.put(argument.getName(), new TelecommandArgument(argument, editable));
             }
 
-            // Override with actual assignments
-            // TODO this should return an empty list in yamcs. Not null
-            if (cmd.getArgumentAssignmentList() != null)
+            // Override values with actual assignments
+            if (cmd.getArgumentAssignmentList() != null) {
                 for (ArgumentAssignmentInfo argumentAssignment : cmd.getArgumentAssignmentList()) {
-                    String name = argumentAssignment.getName();
-                    String value = argumentAssignment.getValue();
-                    boolean editable = (cmd == meta);
-                    argumentsByName.put(name, new TelecommandArgument(name, value, editable));
+                    TelecommandArgument argument = argumentsByName.get(argumentAssignment.getName());
+                    argument.setValue(argumentAssignment.getValue());
+                    argument.setEditable(false);
                 }
+            }
         }
 
         return argumentsByName.values();
     }
 
     public List<String> getMessages() {
-        List<String> messages = new ArrayList<String>();
-        for (ArgumentInfo arg : meta.getArgumentList())
-            if (!isValid(arg))
+        List<String> messages = new ArrayList<>();
+        for (ArgumentInfo arg : meta.getArgumentList()) {
+            if (!isValid(arg)) {
                 messages.add(String.format("Missing argument '%s'", arg.getName()));
+            }
+        }
 
         return messages;
     }
@@ -228,23 +245,27 @@ public class StackedCommand {
     }
 
     public boolean isValid(ArgumentInfo arg) {
-        if (!isAssigned(arg) && !arg.hasInitialValue())
+        if (!isAssigned(arg) && !arg.hasInitialValue()) {
             return false;
+        }
         return true; // TODO more local checks
     }
 
     public boolean isValid() {
-        for (ArgumentInfo arg : meta.getArgumentList())
-            if (!isValid(arg))
+        for (ArgumentInfo arg : meta.getArgumentList()) {
+            if (!isValid(arg)) {
                 return false;
+            }
+        }
         return true;
     }
 
     public List<ArgumentInfo> getMissingArguments() {
         List<ArgumentInfo> res = new ArrayList<>();
         for (ArgumentInfo arg : meta.getArgumentList()) {
-            if (assignments.get(arg) == null)
+            if (assignments.get(arg) == null) {
                 res.add(arg);
+            }
         }
         return res;
     }
@@ -287,11 +308,13 @@ public class StackedCommand {
         // <CommandAlias>(<arg1>:<val1>, [...] , <argN>:<valN>)
         // or
         // <CommandAlias>()
-        if (commandSource == null)
+        if (commandSource == null) {
             throw new Exception("No Source attached to this command");
+        }
         commandSource = commandSource.trim();
-        if (commandSource.isEmpty())
+        if (commandSource.isEmpty()) {
             throw new Exception("No Source attached to this command");
+        }
         int indexStartOfArguments = commandSource.indexOf("(");
         int indexStopOfArguments = commandSource.lastIndexOf(")");
         String commandArguments = commandSource.substring(indexStartOfArguments + 1, indexStopOfArguments);
@@ -312,8 +335,9 @@ public class StackedCommand {
                 }
             }
         }
-        if (commandInfo == null)
+        if (commandInfo == null) {
             throw new Exception("Unable to retrieved this command in the MDB");
+        }
         result.setMetaCommand(commandInfo);
         result.setSelectedAliase(selectedAlias);
 
@@ -321,45 +345,43 @@ public class StackedCommand {
         // TODO: write formal source grammar
         String[] commandArgumentsTab = commandArguments.split(",");
         for (String commandArgument : commandArgumentsTab) {
-            if (commandArgument == null || commandArgument.isEmpty())
+            if (commandArgument == null || commandArgument.isEmpty()) {
                 continue;
+            }
             String[] components = commandArgument.split(":");
             String argument = components[0].trim();
             String value = components[1].trim();
             boolean foundArgument = false;
-            for (ArgumentInfo ai : commandInfo.getArgumentList()) {
+            List<ArgumentInfo> metaCommandArgumentsList = getAllArgumentList(commandInfo);
+            for (ArgumentInfo ai : metaCommandArgumentsList) {
                 foundArgument = ai.getName().toUpperCase().equals(argument.toUpperCase());
                 if (foundArgument) {
-                    if (value.startsWith("\"") && value.endsWith("\""))
+                    if (value.startsWith("\"") && value.endsWith("\"")) {
                         value = value.substring(1, value.length() - 1);
+                    }
                     result.addAssignment(ai, value);
                     break;
                 }
             }
-            if (!foundArgument)
+            if (!foundArgument) {
                 throw new Exception("Argument " + argument + " is not part of the command definition");
+            }
         }
 
         return result;
     }
 
-    public String getSource() {
-        return toStyledString(null).getString();
+    private static List<ArgumentInfo> getAllArgumentList(CommandInfo commandInfo) {
+        List<ArgumentInfo> result = commandInfo.getArgumentList();
+        if (commandInfo.getBaseCommand() != commandInfo) {
+            return Stream.concat(result.stream(), getAllArgumentList(commandInfo.getBaseCommand()).stream())
+                    .collect(Collectors.toList());
+        } else {
+            return result;
+        }
     }
 
-    public StackedCommand copy() {
-        StackedCommand copy = new StackedCommand();
-
-        copy.meta = this.meta;
-        copy.assignments = this.assignments;
-        copy.clientId = this.clientId;
-        copy.comment = this.comment;
-        copy.selectedAlias = this.selectedAlias;
-
-        // reset state and ptv info
-        copy.state = StackedState.DISARMED;
-        copy.ptvInfo = new PTVInfo();
-
-        return copy;
+    public String getSource() {
+        return toStyledString(null).getString();
     }
 }

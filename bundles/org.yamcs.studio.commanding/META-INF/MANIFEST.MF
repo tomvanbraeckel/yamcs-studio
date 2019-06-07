@@ -1,12 +1,13 @@
 Manifest-Version: 1.0
 Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.yamcs.studio.commanding.CommandingPlugin
 Bundle-Description: Yamcs Studio Commanding
 Bundle-ManifestVersion: 2
 Bundle-Name: Yamcs Studio Commanding
 Bundle-SymbolicName: org.yamcs.studio.commanding;singleton:=true
 Bundle-Vendor: Space Applications Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.2.6.qualifier
 Require-Bundle: org.eclipse.ui,
  org.yamcs.studio.core,
  org.yamcs.studio.core.ui,
@@ -14,6 +15,13 @@ Require-Bundle: org.eclipse.ui,
  org.yamcs.client,
  org.eclipse.core.expressions,
  org.eclipse.ui.forms,
- com.google.gson
+ com.google.gson,
+ com.sun.xml.bind,
+ javax.xml,
+ javax.xml.bind,
+ javax.xml.stream,
+ javax.activation,
+ org.apache.velocity;bundle-version="1.5.0"
 Export-Package: org.yamcs.studio.commanding
 Eclipse-PlatformFilter: (| (osgi.ws=win32) (& (osgi.ws=cocoa)(osgi.arch=x86_64)) (osgi.ws=gtk))
+Automatic-Module-Name: org.yamcs.studio.commanding

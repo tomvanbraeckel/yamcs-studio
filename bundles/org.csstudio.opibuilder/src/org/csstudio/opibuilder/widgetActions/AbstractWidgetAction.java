@@ -34,13 +34,13 @@ public abstract class AbstractWidgetAction implements IAdaptable {
     private boolean enabled = true;
 
     private AbstractWidgetModel widgetModel;
-    public static final String PROP_DESCRIPTION = "description";//$NON-NLS-1$
+    public static final String PROP_DESCRIPTION = "description";
 
     public AbstractWidgetAction() {
         propertyMap = new LinkedHashMap<String, AbstractWidgetProperty>();
         configureProperties();
         addProperty(new StringProperty(PROP_DESCRIPTION, "Description",
-                WidgetPropertyCategory.Basic, ""));        //$NON-NLS-1$
+                WidgetPropertyCategory.Basic, ""));       
     }
 
     /**Add a property to the widget.

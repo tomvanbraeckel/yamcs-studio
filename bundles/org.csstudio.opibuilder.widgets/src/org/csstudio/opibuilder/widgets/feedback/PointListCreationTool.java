@@ -50,7 +50,7 @@ public final class PointListCreationTool extends TargetingTool {
      * Property to be used in AbstractTool#setProperties(java.util.Map) for
      * {@link #setFactory(CreationFactory)}.
      */
-    public static final Object PROPERTY_CREATION_FACTORY = "factory"; //$NON-NLS-1$
+    public static final Object PROPERTY_CREATION_FACTORY = "factory";
 
 
     /**
@@ -145,7 +145,7 @@ public final class PointListCreationTool extends TargetingTool {
      */
     @Override
     protected String getDebugName() {
-        return "Creation Tool";//$NON-NLS-1$
+        return "Creation Tool";
     }
 
     /**

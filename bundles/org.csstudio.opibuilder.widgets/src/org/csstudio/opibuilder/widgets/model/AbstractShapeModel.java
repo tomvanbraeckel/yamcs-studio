@@ -29,37 +29,37 @@ public abstract class AbstractShapeModel extends AbstractPVWidgetModel {
     /**
      * Width of the line.
      */
-    public static final String PROP_LINE_WIDTH = "line_width";//$NON-NLS-1$
+    public static final String PROP_LINE_WIDTH = "line_width";
 
     /**
      * Style of the line.
      */
-    public static final String PROP_LINE_STYLE = "line_style";//$NON-NLS-1$
+    public static final String PROP_LINE_STYLE = "line_style";
 
     /**
      * Color of the line.
      */
-    public static final String PROP_LINE_COLOR = "line_color";//$NON-NLS-1$
+    public static final String PROP_LINE_COLOR = "line_color";
 
     /**
      * The widget can be filled with foreground color if this is not zero.
      * It must be a value between 0 to 100.
      */
-    public static final String PROP_FILL_LEVEL = "fill_level"; //$NON-NLS-1$
+    public static final String PROP_FILL_LEVEL = "fill_level";
 
     /**
      * True if fill direction is horizontal.
      */
-    public static final String PROP_HORIZONTAL_FILL = "horizontal_fill"; //$NON-NLS-1$
+    public static final String PROP_HORIZONTAL_FILL = "horizontal_fill";
     /**
      * True if anti alias is enabled for the figure.
      */
-    public static final String PROP_ANTIALIAS = "anti_alias"; //$NON-NLS-1$
+    public static final String PROP_ANTIALIAS = "anti_alias";
 
     /**
      * Alpha value.
      */
-    public static final String PROP_ALPHA = "alpha"; //$NON-NLS-1$
+    public static final String PROP_ALPHA = "alpha";
 
     /** True if background is transparent. */
     public static final String PROP_TRANSPARENT = "transparent";

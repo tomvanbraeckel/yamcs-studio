@@ -55,23 +55,10 @@ public class ProcessorStatusLineContributionItem extends StatusLineContributionI
 
     @Override
     public void clientUpdated(ClientInfo updatedInfo) {
-        Display.getDefault().asyncExec(() -> {
-            if (updatedInfo.getCurrentClient()) {
-                ManagementCatalogue catalogue = ManagementCatalogue.getInstance();
-                ProcessorInfo processorInfo = catalogue.getProcessorInfo(updatedInfo.getInstance(),
-                        updatedInfo.getProcessorName());
-                updateText(processorInfo);
-            }
-        });
     }
 
     @Override
     public void clientDisconnected(ClientInfo updatedInfo) {
-        Display.getDefault().asyncExec(() -> {
-            if (updatedInfo.getCurrentClient()) {
-                updateText(null);
-            }
-        });
     }
 
     @Override
@@ -81,18 +68,25 @@ public class ProcessorStatusLineContributionItem extends StatusLineContributionI
     @Override
     public void instanceUpdated(ConnectionInfo connectionInfo) {
         Display.getDefault().asyncExec(() -> {
+            if (connectionInfo.hasProcessor()) {
+                updateText(connectionInfo.getProcessor());
+            } else {
+                updateText(null);
+            }
+
             YamcsInstance instance = connectionInfo.getInstance();
             String baseText = instance.getName(); // TODO don't get processor??
             switch (instance.getState()) {
-            case NEW:
+            case INITIALIZING:
+            case INITIALIZED:
             case STARTING:
                 // setText("Starting " + instance.getName()); // TODO text currently managed by processorInfo events
                 break;
             case STOPPING:
                 setErrorText(baseText + " (stopping...)", null);
                 break;
-            case TERMINATED:
-                setErrorText(baseText + " (terminated)", null);
+            case OFFLINE:
+                setErrorText(baseText + " (offline)", null);
                 break;
             case FAILED:
                 String detail = (instance.hasFailureCause() ? instance.getFailureCause() : null);
@@ -117,10 +111,6 @@ public class ProcessorStatusLineContributionItem extends StatusLineContributionI
     }
 
     @Override
-    public void processorClosed(ProcessorInfo processorInfo) {
-    }
-
-    @Override
     public void statisticsUpdated(Statistics stats) {
     }
 
@@ -134,9 +124,9 @@ public class ProcessorStatusLineContributionItem extends StatusLineContributionI
 
     @Override
     public void onYamcsDisconnected() {
-        Display display = Display.getDefault();
-        if (!display.isDisposed()) {
-            display.asyncExec(() -> updateText(null));
+        if (isDisposed()) {
+            return;
         }
+        Display.getDefault().asyncExec(() -> updateText(null));
     }
 }

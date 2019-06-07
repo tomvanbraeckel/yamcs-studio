@@ -67,13 +67,8 @@ import org.csstudio.opibuilder.model.RulerModel;
 import org.csstudio.opibuilder.palette.OPIEditorPaletteFactory;
 import org.csstudio.opibuilder.palette.WidgetCreationFactory;
 import org.csstudio.opibuilder.persistence.XMLUtil;
-import org.csstudio.opibuilder.preferences.PreferencesHelper;
 import org.csstudio.opibuilder.runmode.PatchedConnectionLayerClippingStrategy;
-import org.csstudio.opibuilder.runmode.RunModeService;
-import org.csstudio.opibuilder.runmode.RunModeService.DisplayMode;
-import org.csstudio.opibuilder.runmode.RunnerInput;
 import org.csstudio.opibuilder.util.ErrorHandlerUtil;
-import org.csstudio.opibuilder.util.ResourceUtil;
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -155,7 +150,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -167,10 +161,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.ISaveablePart;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.contexts.IContextService;
@@ -197,8 +189,8 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
     /**
      * The file extension for OPI files.
      */
-    public static final String OPI_FILE_EXTENSION = "opi"; //$NON-NLS-1$
-    public static final String ID = "org.csstudio.opibuilder.OPIEditor"; //$NON-NLS-1$
+    public static final String OPI_FILE_EXTENSION = "opi";
+    public static final String ID = "org.csstudio.opibuilder.OPIEditor";
 
     private PaletteRoot paletteRoot;
 
@@ -222,8 +214,9 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
     private OPIHelpContextProvider helpContextProvider;
 
     public OPIEditor() {
-        if (getPalettePreferences().getPaletteState() <= 0)
+        if (getPalettePreferences().getPaletteState() <= 0) {
             getPalettePreferences().setPaletteState(FlyoutPaletteComposite.STATE_PINNED_OPEN);
+        }
         setEditDomain(new DefaultEditDomain(this));
     }
 
@@ -246,23 +239,6 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
     }
 
     @Override
-    public void init(final IEditorSite site, final IEditorInput input)
-            throws PartInitException {
-        // in the mode of "no edit", open OPI in runtime and close this editor immediately.
-        if (PreferencesHelper.isNoEdit()) {
-            setSite(site);
-            setInput(input);
-            final IPath path = ResourceUtil.getPathInEditor(input);
-            RunModeService.openDisplayInView(site.getPage(), new RunnerInput(path, null), DisplayMode.NEW_TAB);
-
-            Display.getDefault().asyncExec(() -> getSite().getPage().closeEditor(OPIEditor.this, false));
-
-        } else {
-            super.init(site, input);
-        }
-    }
-
-    @Override
     public void commandStackChanged(EventObject event) {
         firePropertyChange(IEditorPart.PROP_DIRTY);
         super.commandStackChanged(event);
@@ -274,9 +250,6 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         ScrollingGraphicalViewer viewer = (ScrollingGraphicalViewer) getGraphicalViewer();
         viewer.setEditPartFactory(new WidgetEditPartFactory(ExecutionMode.EDIT_MODE));
         ScalableFreeformRootEditPart root = new ScalableFreeformRootEditPart() {
-            /**
-             * {@inheritDoc}
-             */
             @Override
             public Object getAdapter(@SuppressWarnings("rawtypes") final Class key) {
                 if (key == AutoexposeHelper.class) {
@@ -384,16 +357,18 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
     private void updateStatusLine(IStatusLineManager statusLine) {
         List<AbstractBaseEditPart> selectedWidgets = new ArrayList<>();
         for (Object editpart : getGraphicalViewer().getSelectedEditParts()) {
-            if (editpart instanceof AbstractBaseEditPart && !(editpart instanceof DisplayEditpart))
+            if (editpart instanceof AbstractBaseEditPart && !(editpart instanceof DisplayEditpart)) {
                 selectedWidgets.add((AbstractBaseEditPart) editpart);
+            }
         }
-        if (selectedWidgets.size() == 1)
-            statusLine.setMessage(selectedWidgets.get(0).getWidgetModel().getName() + "(" //$NON-NLS-1$
-                    + selectedWidgets.get(0).getWidgetModel().getType() + ")"); //$NON-NLS-1$
-        else if (selectedWidgets.size() >= 1)
+        if (selectedWidgets.size() == 1) {
+            statusLine.setMessage(selectedWidgets.get(0).getWidgetModel().getName() + "("
+                    + selectedWidgets.get(0).getWidgetModel().getType() + ")");
+        } else if (selectedWidgets.size() >= 1) {
             statusLine.setMessage(selectedWidgets.size() + " widgets were selected");
-        else
+        } else {
             statusLine.setMessage("No widget was selected");
+        }
     }
 
     /**
@@ -415,7 +390,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         super.createActions();
 
         ((IContextService) getEditorSite().getService(IContextService.class))
-                .activateContext("org.csstudio.opibuilder.opiEditor"); //$NON-NLS-1$
+                .activateContext("org.csstudio.opibuilder.opiEditor");
 
         ActionRegistry registry = getActionRegistry();
         IAction action;
@@ -437,7 +412,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
         String id = ActionFactory.DELETE.getId();
         action = getActionRegistry().getAction(id);
-        action.setActionDefinitionId("org.eclipse.ui.edit.delete"); //$NON-NLS-1$
+        action.setActionDefinitionId("org.eclipse.ui.edit.delete");
 
         action = new PasteWidgetsAction(this);
         registry.registerAction(action);
@@ -457,15 +432,15 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
         id = ActionFactory.SELECT_ALL.getId();
         action = getActionRegistry().getAction(id);
-        action.setActionDefinitionId("org.eclipse.ui.edit.selectAll");//$NON-NLS-1$
+        action.setActionDefinitionId("org.eclipse.ui.edit.selectAll");
 
         id = ActionFactory.UNDO.getId();
         action = getActionRegistry().getAction(id);
-        action.setActionDefinitionId("org.eclipse.ui.edit.undo");//$NON-NLS-1$
+        action.setActionDefinitionId("org.eclipse.ui.edit.undo");
 
         id = ActionFactory.REDO.getId();
         action = getActionRegistry().getAction(id);
-        action.setActionDefinitionId("org.eclipse.ui.edit.redo");//$NON-NLS-1$
+        action.setActionDefinitionId("org.eclipse.ui.edit.redo");
 
         action = new AlignmentAction((IWorkbenchPart) this,
                 PositionConstants.LEFT);
@@ -583,8 +558,6 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
     /**
      * Create a double array that contains the pre-defined zoom levels.
-     *
-     * @return A double array that contains the pre-defined zoom levels.
      */
     private double[] createZoomLevels() {
         List<Double> zoomLevelList = new ArrayList<>();
@@ -626,16 +599,14 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void doSaveAs() {
         SaveAsDialog saveAsDialog = new SaveAsDialog(getEditorSite().getShell());
-        if (getEditorInput() instanceof FileEditorInput)
+        if (getEditorInput() instanceof FileEditorInput) {
             saveAsDialog.setOriginalFile(((FileEditorInput) getEditorInput()).getFile());
-        else if (getEditorInput() instanceof FileStoreEditorInput)
+        } else if (getEditorInput() instanceof FileStoreEditorInput) {
             saveAsDialog.setOriginalName(((FileStoreEditorInput) getEditorInput()).getName());
+        }
 
         int ret = saveAsDialog.open();
 
@@ -660,78 +631,74 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         } catch (CoreException e) {
             MessageDialog.openError(getSite().getShell(), "IO Error", e
                     .getMessage());
-            OPIBuilderPlugin.getLogger().log(Level.WARNING, "File save error", e); //$NON-NLS-1$
+            OPIBuilderPlugin.getLogger().log(Level.WARNING, "File save error", e);
         }
     }
 
     @Override
     public Object getAdapter(@SuppressWarnings("rawtypes") Class type) {
-        if (type == IPropertySheetPage.class)
+        if (type == IPropertySheetPage.class) {
             return getPropertySheetPage();
-        else if (type == ZoomManager.class)
+        } else if (type == ZoomManager.class) {
             return ((ScalableFreeformRootEditPart) getGraphicalViewer()
                     .getRootEditPart()).getZoomManager();
-        // else if (type == IContentOutlinePage.class)
-        // return getOverviewOutlinePage();
-        else if (type == IContentOutlinePage.class) {
+        } else if (type == IContentOutlinePage.class) {
             outlinePage = new OutlinePage(new TreeViewer());
             return outlinePage;
         } else if (type.equals(IContextProvider.class)) {
-            if (helpContextProvider == null)
+            if (helpContextProvider == null) {
                 helpContextProvider = new OPIHelpContextProvider(getGraphicalViewer());
+            }
             return helpContextProvider;
         } else if (type.equals(IGotoMarker.class)) {
-            return new IGotoMarker() {
-                @Override
-                public void gotoMarker(IMarker marker) {
-                    try {
-                        String wuid = (String) marker.getAttribute(AbstractWidgetModel.PROP_WIDGET_UID);
-                        if (wuid == null) {
-                            // if wuid is not stored in the marker try to find it based on character
-                            Integer charStart = (Integer) marker.getAttribute(IMarker.CHAR_START);
-                            if (charStart == null) {
-                                return;
-                            }
-                            // Get the closest widget to charStart position
-                            wuid = XMLUtil.findClosestWidgetUid(getInputStream(), charStart);
-                            if (wuid == null) {
-                                return;
-                            }
-                        }
-                        AbstractWidgetModel widget = getDisplayModel().getWidgetFromWUID(wuid);
-                        if (widget == null) {
+            return (IGotoMarker) marker -> {
+                try {
+                    String wuid = (String) marker.getAttribute(AbstractWidgetModel.PROP_WIDGET_UID);
+                    if (wuid == null) {
+                        // if wuid is not stored in the marker try to find it based on character
+                        Integer charStart = (Integer) marker.getAttribute(IMarker.CHAR_START);
+                        if (charStart == null) {
                             return;
                         }
-                        // Get the widget editPart
-                        Object obj = getGraphicalViewer().getEditPartRegistry().get(widget);
-                        if (obj != null && obj instanceof AbstractBaseEditPart) {
-                            EditPart widgetEditPart = (AbstractBaseEditPart) obj;
-
-                            // Reveal the widget
-                            getGraphicalViewer().reveal(widgetEditPart);
-
-                            // Find the closest selectable part
-                            while (widgetEditPart != null && !widgetEditPart.isSelectable()) {
-                                widgetEditPart = widgetEditPart.getParent();
-                            }
-                            if (widgetEditPart != null) {
-                                // Select the widget in OPI
-                                SelectionManager selectionManager = getGraphicalViewer().getSelectionManager();
-                                selectionManager.deselectAll();
-                                selectionManager.appendSelection(widgetEditPart);
-                            }
+                        // Get the closest widget to charStart position
+                        wuid = XMLUtil.findClosestWidgetUid(getInputStream(), charStart);
+                        if (wuid == null) {
+                            return;
                         }
-                    } catch (IOException e) {
-                        MessageDialog.openError(getSite().getShell(),
-                                "IO Error", e.getMessage());
-                        OPIBuilderPlugin.getLogger().log(Level.WARNING,
-                                "File open error", e); //$NON-NLS-1$
-                    } catch (CoreException e) {
-                        MessageDialog.openError(getSite().getShell(),
-                                "Core Error", e.getMessage());
-                        OPIBuilderPlugin.getLogger().log(Level.WARNING,
-                                "File open error", e); //$NON-NLS-1$
                     }
+                    AbstractWidgetModel widget = getDisplayModel().getWidgetFromWUID(wuid);
+                    if (widget == null) {
+                        return;
+                    }
+                    // Get the widget editPart
+                    Object obj = getGraphicalViewer().getEditPartRegistry().get(widget);
+                    if (obj != null && obj instanceof AbstractBaseEditPart) {
+                        EditPart widgetEditPart = (AbstractBaseEditPart) obj;
+
+                        // Reveal the widget
+                        getGraphicalViewer().reveal(widgetEditPart);
+
+                        // Find the closest selectable part
+                        while (widgetEditPart != null && !widgetEditPart.isSelectable()) {
+                            widgetEditPart = widgetEditPart.getParent();
+                        }
+                        if (widgetEditPart != null) {
+                            // Select the widget in OPI
+                            SelectionManager selectionManager = getGraphicalViewer().getSelectionManager();
+                            selectionManager.deselectAll();
+                            selectionManager.appendSelection(widgetEditPart);
+                        }
+                    }
+                } catch (IOException e1) {
+                    MessageDialog.openError(getSite().getShell(),
+                            "IO Error", e1.getMessage());
+                    OPIBuilderPlugin.getLogger().log(Level.WARNING,
+                            "File open error", e1);
+                } catch (CoreException e2) {
+                    MessageDialog.openError(getSite().getShell(),
+                            "Core Error", e2.getMessage());
+                    OPIBuilderPlugin.getLogger().log(Level.WARNING,
+                            "File open error", e2);
                 }
             };
         }
@@ -739,8 +706,9 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
     }
 
     public Clipboard getClipboard() {
-        if (clipboard == null)
+        if (clipboard == null) {
             clipboard = new Clipboard(getSite().getShell().getDisplay());
+        }
         return clipboard;
     }
 
@@ -822,8 +790,6 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
     /**
      * Returns the overview for the outline view.
-     *
-     * @return the overview
      */
     protected OverviewOutlinePage getOverviewOutlinePage() {
         if (null == overviewOutlinePage && null != getGraphicalViewer()) {
@@ -838,15 +804,14 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
     @Override
     protected PaletteRoot getPaletteRoot() {
-        if (paletteRoot == null)
+        if (paletteRoot == null) {
             paletteRoot = OPIEditorPaletteFactory.createPalette();
+        }
         return paletteRoot;
     }
 
     /**
      * Returns the main composite of the editor.
-     *
-     * @return the main composite of the editor
      */
     public Composite getParentComposite() {
         return rulerComposite;
@@ -854,8 +819,6 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
     /**
      * Returns the undoable <code>PropertySheetPage</code> for this editor.
-     *
-     * @return the undoable <code>PropertySheetPage</code>
      */
     protected PropertySheetPage getPropertySheetPage() {
         if (undoablePropertySheetPage == null) {
@@ -874,7 +837,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
     // Override this to make unselectable widgets won't be selected.
     @Override
     protected SelectionSynchronizer getSelectionSynchronizer() {
-        if (synchronizer == null)
+        if (synchronizer == null) {
             synchronizer = new SelectionSynchronizer() {
                 @Override
                 protected EditPart convert(EditPartViewer viewer, EditPart part) {
@@ -885,12 +848,10 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
                     return null;
                 };
             };
+        }
         return synchronizer;
     }
 
-    /**
-     *
-     */
     private void initDisplayModel() {
 
         displayModel = new DisplayModel();
@@ -898,7 +859,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         try {
             XMLUtil.fillDisplayModelFromInputStream(getInputStream(), displayModel);
         } catch (Exception e) {
-            String message = "Error happened when loading the OPI file!\n";
+            String message = "Error happened when loading the OPI file!";
             ErrorHandlerUtil.handleError(message, e, true, true);
             getEditorSite().getPage().closeEditor(this, false);
         }
@@ -924,7 +885,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         GraphicalViewer viewer = getGraphicalViewer();
 
         PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(),
-                "org.csstudio.opibuilder.opi_editor"); //$NON-NLS-1$
+                "org.csstudio.opibuilder.opi_editor");
 
         viewer.setContents(displayModel);
         displayModel.setViewer(viewer);
@@ -946,7 +907,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
         try {
             String content = XMLUtil.XML_HEADER + XMLUtil.widgetToXMLString(displayModel, true);
             if (getEditorInput() instanceof FileEditorInput) {
-                InputStream in = new ByteArrayInputStream(content.getBytes("UTF-8")); //$NON-NLS-1$
+                InputStream in = new ByteArrayInputStream(content.getBytes("UTF-8"));
                 try {
                     IFile file = ((FileEditorInput) getEditorInput()).getFile();
                     file.setContents(
@@ -965,7 +926,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
                             .toFile();
 
                     BufferedWriter writer = new BufferedWriter(
-                            new OutputStreamWriter(new FileOutputStream(file), "UTF-8")); //$NON-NLS-1$
+                            new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
                     writer.write(content);
                     writer.flush();
                     writer.close();
@@ -986,15 +947,12 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
     }
 
-    /**
-     * @param e
-     */
     private void processSaveFailedError(Exception e) {
         MessageDialog.openError(getSite().getShell(),
                 "Save Failed!", e.getMessage() +
                         "\nThe original file might be deleted, moved or renamed. " +
                         "Please use File->Save as... to save this file.");
-        OPIBuilderPlugin.getLogger().log(Level.WARNING, "File save failed", e); //$NON-NLS-1$
+        OPIBuilderPlugin.getLogger().log(Level.WARNING, "File save failed", e);
     }
 
     protected FigureCanvas getFigureCanvas() {
@@ -1059,7 +1017,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
             };
             getViewer().setContextMenu(provider);
             getSite().registerContextMenu(
-                    "org.csstudio.opibuilder.outline.contextmenu", //$NON-NLS-1$
+                    "org.csstudio.opibuilder.outline.contextmenu",
                     provider, this);
             getSite().setSelectionProvider(getViewer());
             getViewer().setKeyHandler(getCommonKeyHandler());
@@ -1072,14 +1030,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
                 @Override
                 public void selectionChanged(SelectionChangedEvent event) {
-                    Display.getCurrent().asyncExec(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            updateStatusLine(statusLine);
-
-                        }
-                    });
+                    Display.getCurrent().asyncExec(() -> updateStatusLine(statusLine));
                 }
             });
 
@@ -1092,7 +1043,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
             };
             showOutlineAction.setImageDescriptor(
                     OPIBuilderPlugin.imageDescriptorFromPlugin(
-                            OPIBuilderPlugin.PLUGIN_ID, "icons/tree_mode.gif")); //$NON-NLS-1$
+                            OPIBuilderPlugin.PLUGIN_ID, "icons/tree_mode.gif"));
             showOutlineAction.setToolTipText("Show Tree View ");
             tbm.add(showOutlineAction);
             showOverviewAction = new Action() {
@@ -1103,7 +1054,7 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
             };
             showOverviewAction.setImageDescriptor(
                     OPIBuilderPlugin.imageDescriptorFromPlugin(
-                            OPIBuilderPlugin.PLUGIN_ID, "icons/overview.gif")); //$NON-NLS-1$
+                            OPIBuilderPlugin.PLUGIN_ID, "icons/overview.gif"));
             showOverviewAction.setToolTipText("Show Overview");
             tbm.add(showOverviewAction);
             showPage(ID_OUTLINE);
@@ -1154,16 +1105,16 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
         @Override
         public <T> T getAdapter(Class<T> type) {
-            if (type == ISaveablePart.class)
+            if (type == ISaveablePart.class) {
                 return null; // we should not return the saveable part, because the outline itself is not saveable, the
-                             // editor is
-            else if (type == ZoomManager.class)
+            } else if (type == ZoomManager.class) {
                 return type.cast(getGraphicalViewer().getProperty(ZoomManager.class.toString()));
-            else if (type == CommandStack.class)
+            } else if (type == CommandStack.class) {
                 return type.cast(getCommandStack());
-            else if (type.equals(IContextProvider.class)) {
-                if (helpContextProvider == null)
+            } else if (type.equals(IContextProvider.class)) {
+                if (helpContextProvider == null) {
                     helpContextProvider = new OPIHelpContextProvider(getGraphicalViewer());
+                }
                 return type.cast(helpContextProvider);
             }
             return type.cast(OPIEditor.this.getAdapter(type));
@@ -1191,13 +1142,10 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
                 thumbnail.setBorder(new MarginBorder(3));
                 thumbnail.setSource(root.getLayer(LayerConstants.PRINTABLE_LAYERS));
                 lws.setContents(thumbnail);
-                disposeListener = new DisposeListener() {
-                    @Override
-                    public void widgetDisposed(DisposeEvent e) {
-                        if (thumbnail != null) {
-                            thumbnail.deactivate();
-                            thumbnail = null;
-                        }
+                disposeListener = e -> {
+                    if (thumbnail != null) {
+                        thumbnail.deactivate();
+                        thumbnail = null;
                     }
                 };
                 getFigureCanvas().addDisposeListener(disposeListener);
@@ -1213,11 +1161,13 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
                 showOutlineAction.setChecked(true);
                 showOverviewAction.setChecked(false);
                 pageBook.showPage(outline);
-                if (thumbnail != null)
+                if (thumbnail != null) {
                     thumbnail.setVisible(false);
+                }
             } else if (id == ID_OVERVIEW) {
-                if (thumbnail == null)
+                if (thumbnail == null) {
                     initializeOverview();
+                }
                 showOutlineAction.setChecked(false);
                 showOverviewAction.setChecked(true);
                 pageBook.showPage(overview);
@@ -1227,8 +1177,9 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
 
         protected void unhookOutlineViewer() {
             getSelectionSynchronizer().removeViewer(getViewer());
-            if (disposeListener != null && getFigureCanvas() != null && !getFigureCanvas().isDisposed())
+            if (disposeListener != null && getFigureCanvas() != null && !getFigureCanvas().isDisposed()) {
                 getFigureCanvas().removeDisposeListener(disposeListener);
+            }
         }
 
         public GraphicalViewer getGraphicalViewer() {
@@ -1242,8 +1193,9 @@ public class OPIEditor extends GraphicalEditorWithFlyoutPalette {
          */
         @Override
         public ISelection getSelection() {
-            if (getGraphicalViewer() == null)
+            if (getGraphicalViewer() == null) {
                 return StructuredSelection.EMPTY;
+            }
             return getGraphicalViewer().getSelection();
         }
     }

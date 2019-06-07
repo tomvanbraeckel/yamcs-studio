@@ -6,7 +6,7 @@ Bundle-Name: Yamcs Studio Runtime Base
 Bundle-SymbolicName: org.yamcs.studio.runtime.base;singleton:=true
 Bundle-Vendor: Space Applications Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.2.6.qualifier
 Require-Bundle: org.eclipse.swt,
  org.eclipse.jface,
  org.eclipse.equinox.common,
@@ -18,3 +18,4 @@ Require-Bundle: org.eclipse.swt,
  org.yamcs.client
 Export-Package: org.yamcs.studio.runtime.base
 Eclipse-PlatformFilter: (| (osgi.ws=win32) (& (osgi.ws=cocoa)(osgi.arch=x86_64)) (osgi.ws=gtk))
+Automatic-Module-Name: org.yamcs.studio.runtime.base

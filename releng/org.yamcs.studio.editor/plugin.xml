@@ -6,19 +6,19 @@
          point="org.eclipse.core.runtime.products">
       <product
             application="org.yamcs.studio.editor.application"
-            name="Yamcs Studio Editor">
+            name="Yamcs Studio">
          <property
                name="windowImages"
                value="icons/logo16.png,icons/logo32.png,icons/logo48.png,icons/logo64.png,icons/logo128.png,icons/logo256.png"/>
          <property
                name="aboutText"
-               value="Rich desktop client for Yamcs - The Open Source Mission Control System&#x0A;&#x0A;See http://www.yamcs.org"/>
+               value="Rich desktop client for Yamcs - The Open Source Mission Control System&#x0A;&#x0A;See https://www.yamcs.org"/>
          <property
                name="aboutImage"
                value="icons/aboutSide.png"/>
          <property
                name="appName"
-               value="Yamcs Studio Editor"/>
+               value="Yamcs Studio"/>
          <property
                name="startupForegroundColor"
                value="2F376D"/>
@@ -30,13 +30,13 @@
                value="20,215,560,15"/>
          <property
                name="introTitle"
-               value="Yamcs Studio Editor"/>
+               value="Yamcs Studio"/>
          <property
                name="introBrandingImage"
                value="product:icons/logo64.png"/>
          <property
                name="introBrandingImageText"
-               value="Yamcs Studio Editor"/>
+               value="Yamcs Studio"/>
          <property
                name="preferenceCustomization"
                value="plugin_customization.ini">
@@ -47,7 +47,7 @@
    <extension
          id="application"
          point="org.eclipse.core.runtime.applications"
-         name="Yamcs Studio Editor">
+         name="Yamcs Studio">
       <application>
          <run
                class="org.yamcs.studio.editor.base.Application">
@@ -55,18 +55,12 @@
       </application>
    </extension>
 
-   <extension point="org.eclipse.ui.activities">
-      <activity id="yamcsstudio.disableextensions" name="Hidden activities"/>
-      <!-- Hide the 'Show PV Info' pop-up menu that appears when you right-click a PV in a display.
-        We have our own richer modal for that. -->
-      <activityPatternBinding
-            activityId="yamcsstudio.disableextensions"
-            pattern="org.csstudio.opibuilder/org.csstudio.opibuilder.showPVInfoAction"/>
-   </extension>
-
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.csstudio.opibuilder.OPIRuntime.perspective">
+         <actionSet
+               id="org.csstudio.opibuilder.editor.runtimeActionSet">
+         </actionSet>
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"
@@ -76,31 +70,31 @@
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"
-               visible="false"
+               visible="true"
                closeable="true"
                id="org.yamcs.studio.eventlog.EventLogView"/>
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"
-               visible="false"
+               visible="true"
                closeable="true"
                id="org.yamcs.studio.alarms.active.ActiveAlarmsView"/>
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"
-               visible="false"
+               visible="true"
                closeable="true"
                id="org.yamcs.studio.commanding.stack.CommandStackView"/>
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"
-               visible="false"
+               visible="true"
                closeable="true"
                id="org.yamcs.studio.commanding.queue.CommandQueueView"/>
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"
-               visible="false"
+               visible="true"
                closeable="true"
                id="org.yamcs.studio.commanding.cmdhist.CommandHistoryView"/>
          <view
@@ -109,6 +103,12 @@
                visible="false"
                closeable="true"
                id="org.yamcs.studio.editor.base.views.FunctionsView"/>
+         <view
+               relative="org.eclipse.ui.console.ConsoleView"
+               relationship="stack"
+               visible="false"
+               closeable="true"
+               id="org.yamcs.studio.editor.base.views.ParametersView"/>
          <view
                relative="org.eclipse.ui.console.ConsoleView"
                relationship="stack"

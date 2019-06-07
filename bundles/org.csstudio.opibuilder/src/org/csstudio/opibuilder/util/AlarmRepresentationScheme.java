@@ -9,30 +9,27 @@ package org.csstudio.opibuilder.util;
 
 import org.csstudio.opibuilder.visualparts.BorderFactory;
 import org.csstudio.opibuilder.visualparts.BorderStyle;
-import org.eclipse.draw2d.AbstractBorder;
+import org.diirt.vtype.AlarmSeverity;
 import org.eclipse.draw2d.Border;
 import org.eclipse.swt.graphics.RGB;
-import org.diirt.vtype.AlarmSeverity;
 
-/**The scheme for alarm color which provide unified colors and borders for alarms.
+/**
+ * The scheme for alarm color which provide unified colors and borders for alarms.
+ * 
  * @author Xihui Chen
  * @author Takashi Nakamoto - implemented getAlarmColor() method.
  */
 public class AlarmRepresentationScheme {
 
-
     public static final int ALARM_BORDER_WIDTH = 2;
-    public static final String MAJOR = "Major"; //$NON-NLS-1$
-    public static final String MINOR = "Minor"; //$NON-NLS-1$
-    public static final String INVALID = "Invalid"; //$NON-NLS-1$
-    public static final String DISCONNECTED = "Disconnected"; //$NON-NLS-1$
-
-    private static final AbstractBorder DISCONNECT_BORDER = BorderFactory.createBorder(
-            BorderStyle.TITLE_BAR, 1, AlarmRepresentationScheme.getDisconnectedColor(),
-            "Disconnected");
+    public static final String MAJOR = "Major";
+    public static final String MINOR = "Minor";
+    public static final String INVALID = "Invalid";
+    public static final String DISCONNECTED = "Disconnected";
 
     /**
      * Returns color of alarm severity.
+     * 
      * @param severity
      * @return RGB color of the given alarm severity. Null if alarm severity is "OK".
      */
@@ -47,29 +44,29 @@ public class AlarmRepresentationScheme {
         case INVALID:
         case UNDEFINED:
         default:
-            return getInValidColor();
+            return getInvalidColor();
         }
     }
 
-    public static RGB getMajorColor(){
+    public static RGB getMajorColor() {
         return MediaService.getInstance().getColor(MAJOR);
     }
 
-    public static RGB getMinorColor(){
+    public static RGB getMinorColor() {
         return MediaService.getInstance().getColor(MINOR);
     }
 
-    public static RGB getInValidColor(){
+    public static RGB getInvalidColor() {
         return MediaService.getInstance().getColor(INVALID);
     }
 
-    public static RGB getDisconnectedColor(){
+    public static RGB getDisconnectedColor() {
         return MediaService.getInstance().getColor(DISCONNECTED);
     }
 
-    public static Border getMajorBorder(BorderStyle borderStyle){
+    public static Border getMajorBorder(BorderStyle borderStyle) {
         BorderStyle newBorderStyle = getNewBorderStyle(borderStyle);
-        return BorderFactory.createBorder(newBorderStyle, ALARM_BORDER_WIDTH, getMajorColor(), ""); //$NON-NLS-1$
+        return BorderFactory.createBorder(newBorderStyle, ALARM_BORDER_WIDTH, getMajorColor(), "");
     }
 
     private static BorderStyle getNewBorderStyle(BorderStyle borderStyle) {
@@ -87,19 +84,18 @@ public class AlarmRepresentationScheme {
         return newBorderStyle;
     }
 
-    public static Border getMinorBorder(BorderStyle borderStyle){
+    public static Border getMinorBorder(BorderStyle borderStyle) {
         BorderStyle newBorderStyle = getNewBorderStyle(borderStyle);
-
-        return BorderFactory.createBorder(newBorderStyle, ALARM_BORDER_WIDTH, getMinorColor(), ""); //$NON-NLS-1$
+        return BorderFactory.createBorder(newBorderStyle, ALARM_BORDER_WIDTH, getMinorColor(), "");
     }
 
-    public static Border getInvalidBorder(BorderStyle borderStyle){
+    public static Border getInvalidBorder(BorderStyle borderStyle) {
         BorderStyle newBorderStyle = getNewBorderStyle(borderStyle);
-
-        return BorderFactory.createBorder(newBorderStyle, ALARM_BORDER_WIDTH, getInValidColor(), ""); //$NON-NLS-1$
+        return BorderFactory.createBorder(newBorderStyle, ALARM_BORDER_WIDTH, getInvalidColor(), "");
     }
 
-    public static Border getDisonnectedBorder(){
-        return DISCONNECT_BORDER;
+    public static Border getDisconnectedBorder() {
+        return BorderFactory.createBorder(BorderStyle.TITLE_BAR, 1, getDisconnectedColor(),
+                "Disconnected");
     }
 }

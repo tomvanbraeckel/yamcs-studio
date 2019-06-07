@@ -16,6 +16,7 @@ import org.yamcs.protobuf.Commanding.CommandHistoryAttribute;
 import org.yamcs.protobuf.Commanding.CommandId;
 import org.yamcs.protobuf.Yamcs.Value;
 import org.yamcs.studio.commanding.PTVInfo;
+import org.yamcs.studio.core.ui.YamcsUIPlugin;
 import org.yamcs.utils.TimeEncoding;
 
 import com.google.protobuf.ByteString;
@@ -50,9 +51,10 @@ public class CommandHistoryRecord {
     private String username = "anonymous";
     private String finalSequenceCount;
     private PTVInfo ptvInfo;
+    private String comment;
     private Map<String, Map<String, Object>> cellPropsByColumn = new LinkedHashMap<>();
 
-    private Map<String, VerificationStep> verificationStepsByName = new LinkedHashMap<>();
+    private Map<String, Stage> verificationStepsByName = new LinkedHashMap<>();
 
     public CommandHistoryRecord(CommandId id) {
         this.id = id;
@@ -71,6 +73,10 @@ public class CommandHistoryRecord {
         this.commandString = valueToString(commandString);
     }
 
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
     public void setUsername(Value username) {
         this.username = valueToString(username);
     }
@@ -83,12 +89,12 @@ public class CommandHistoryRecord {
         this.binary = binary;
     }
 
-    public void addVerificationStep(VerificationStep step) {
+    public void addStage(Stage step) {
         verificationStepsByName.put(step.getName(), step);
     }
 
-    public void updateVerificationStepTime(String shortName, CommandHistoryAttribute timeAttribute) {
-        VerificationStep step = verificationStepsByName.get(shortName);
+    public void updateStageTime(String shortName, CommandHistoryAttribute timeAttribute) {
+        Stage step = verificationStepsByName.get(shortName);
         step.setTime(timeAttribute);
     }
 
@@ -135,8 +141,9 @@ public class CommandHistoryRecord {
     }
 
     public String getCellImage(String columnName) {
-        if (!cellPropsByColumn.containsKey(columnName))
+        if (!cellPropsByColumn.containsKey(columnName)) {
             return null;
+        }
         return (String) cellPropsByColumn.get(columnName).get(KEY_IMAGE);
     }
 
@@ -161,7 +168,7 @@ public class CommandHistoryRecord {
     }
 
     public String getGenerationTime() {
-        return TimeEncoding.toString(id.getGenerationTime());
+        return YamcsUIPlugin.getDefault().formatInstant(id.getGenerationTime());
     }
 
     public long getRawGenerationTime() {
@@ -176,6 +183,10 @@ public class CommandHistoryRecord {
         return id.getOrigin();
     }
 
+    public String getComment() {
+        return comment;
+    }
+
     public ByteString getBinary() {
         return binary;
     }
@@ -184,7 +195,7 @@ public class CommandHistoryRecord {
         return ptvInfo;
     }
 
-    public List<VerificationStep> getVerificationSteps() {
+    public List<Stage> getVerificationSteps() {
         return new ArrayList<>(verificationStepsByName.values());
     }
 
@@ -228,8 +239,9 @@ public class CommandHistoryRecord {
     }
 
     private Object valueToRawValue(Value value) {
-        if (value == null)
+        if (value == null) {
             return null;
+        }
         switch (value.getType()) {
         case STRING:
             return value.getStringValue();
@@ -258,8 +270,9 @@ public class CommandHistoryRecord {
     }
 
     private String valueToString(Value value) {
-        if (value == null)
+        if (value == null) {
             return null;
+        }
         switch (value.getType()) {
         case STRING:
             return value.getStringValue();

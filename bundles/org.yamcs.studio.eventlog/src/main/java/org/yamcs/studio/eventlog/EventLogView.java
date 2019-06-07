@@ -1,10 +1,14 @@
 package org.yamcs.studio.eventlog;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.part.ViewPart;
-import org.yamcs.studio.core.model.ManagementCatalogue;
 
 public class EventLogView extends ViewPart {
 
@@ -16,9 +20,22 @@ public class EventLogView extends ViewPart {
         eventlog.setLayoutData(new GridData(GridData.FILL_BOTH));
 
         eventlog.attachToSite(getViewSite());
-        eventlog.connect();
+        createActions(getSite().getShell());
 
-        eventlog.setStatsListener(this::updateSummaryLine);
+        eventlog.connect();
+    }
+
+    private void createActions(Shell shell) {
+        IActionBars bars = getViewSite().getActionBars();
+        IMenuManager mgr = bars.getMenuManager();
+
+        Action configureColumnsAction = new Action("Configure Columns...", IAction.AS_PUSH_BUTTON) {
+            @Override
+            public void run() {
+                eventlog.openConfigureColumnsDialog(shell);
+            }
+        };
+        mgr.add(configureColumnsAction);
     }
 
     @Override
@@ -26,24 +43,13 @@ public class EventLogView extends ViewPart {
         eventlog.setFocus();
     }
 
+    public EventLog getEventLog() {
+        return eventlog;
+    }
+
     @Override
     public void dispose() {
         eventlog.dispose();
         super.dispose();
-    }
-
-    private void updateSummaryLine(int errorCount, int warningCount, int infoCount) {
-        String yamcsInstance = ManagementCatalogue.getCurrentYamcsInstance();
-        String summaryLine = "";
-        if (yamcsInstance != null) {
-            summaryLine = "Showing events for Yamcs instance " + yamcsInstance + ". ";
-        }
-
-        setContentDescription(summaryLine + String.format("%d errors, %d warnings, %d others (no filter)",
-                errorCount, warningCount, infoCount));
-    }
-
-    public EventLog getEventLog() {
-        return eventlog;
     }
 }

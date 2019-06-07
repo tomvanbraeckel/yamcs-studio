@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.yamcs.studio</groupId>
     <artifactId>org.yamcs.studio.p2deps</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.2.6-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.yamcs.client</artifactId>
@@ -47,12 +47,10 @@
               *; resolution:=optional
             </Import-Package>
             <Export-Package>
-              com.csvreader,
               com.google.protobuf,
               io.netty.channel,
               io.netty.handler.codec.http,
               io.netty.util.concurrent,
-              io.protostuff,
               org.yaml.snakeyaml,
               org.yamcs,
               org.yamcs.api,
@@ -61,7 +59,8 @@
               org.yamcs.protobuf,
               org.yamcs.security,
               org.yamcs.utils,
-              org.yamcs.xtce
+              org.yamcs.xtce,
+              org.yamcs.xtce.xml
             </Export-Package>
           </instructions>
         </configuration>

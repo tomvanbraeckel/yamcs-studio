@@ -1,20 +1,24 @@
 package org.csstudio.opibuilder.script;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 import org.csstudio.opibuilder.editparts.AbstractBaseEditPart;
 import org.csstudio.simplepv.IPV;
 
 /**
  * This is the implementation of {@link AbstractScriptStore} for the default javascript script engine embedded in Java.
- * The default javascript engine is Rhino for Java 7, Nashorn for Java 8.
+ * (Nashorn since Java 8).
  */
 public class JavaScriptStore extends AbstractScriptStore {
 
@@ -22,10 +26,8 @@ public class JavaScriptStore extends AbstractScriptStore {
     private Bindings bindings;
     private CompiledScript script;
 
-    public JavaScriptStore(final ScriptData scriptData, final AbstractBaseEditPart editpart,
-            final IPV[] pvArray) throws Exception {
+    public JavaScriptStore(ScriptData scriptData, AbstractBaseEditPart editpart, IPV[] pvArray) throws Exception {
         super(scriptData, editpart, pvArray);
-
     }
 
     @Override
@@ -37,6 +39,17 @@ public class JavaScriptStore extends AbstractScriptStore {
         bindings.put(ScriptService.DISPLAY, getDisplayEditPart());
         bindings.put(ScriptService.WIDGET_CONTROLLER_DEPRECIATED, getEditPart());
         bindings.put(ScriptService.PV_ARRAY_DEPRECIATED, getPvArray());
+        bootstrapScriptEngine(engine, bindings);
+    }
+
+    public static void bootstrapScriptEngine(ScriptEngine engine, Bindings bindings)
+            throws IOException, ScriptException {
+        String nashornBootstrap = "/org/csstudio/opibuilder/script/nashorn_bootstrap.js";
+        try (Reader in = new InputStreamReader(JavaScriptStore.class.getResourceAsStream(nashornBootstrap))) {
+            engine.eval(in, bindings);
+        }
+        engine.eval("importPackage(Packages.org.csstudio.opibuilder.scriptUtil);", bindings);
+        engine.eval("importPackage(Packages.org.yamcs.studio.script);", bindings);
     }
 
     @Override
@@ -45,11 +58,20 @@ public class JavaScriptStore extends AbstractScriptStore {
     }
 
     @Override
-    protected void compileInputStream(InputStream s) throws Exception {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(s))) {
-            script = ((Compilable) engine).compile(reader);
+    protected void compileInputStream(InputStream in) throws Exception {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        try {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = in.read(buffer)) != -1) {
+                bout.write(buffer, 0, length);
+            }
+        } finally {
+            in.close();
         }
 
+        String content = bout.toString(StandardCharsets.UTF_8.name());
+        script = ((Compilable) engine).compile(content);
     }
 
     @Override

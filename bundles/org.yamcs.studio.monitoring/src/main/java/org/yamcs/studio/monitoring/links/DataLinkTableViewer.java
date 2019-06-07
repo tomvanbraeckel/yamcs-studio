@@ -18,17 +18,15 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
-import org.yamcs.protobuf.YamcsManagement.LinkInfo;
 import org.yamcs.studio.core.model.LinkCatalogue;
 
 public class DataLinkTableViewer extends TableViewer {
 
     public static final String COL_NAME = "Name";
     public static final String COL_TYPE = "Type";
-    public static final String COL_SPEC = "Spec";
-    public static final String COL_STREAM = "Stream";
     public static final String COL_STATUS = "Status";
-    public static final String COL_DATACOUNT = "Data Count";
+    public static final String COL_IN = "In";
+    public static final String COL_OUT = "Out";
 
     public DataLinkTableViewer(Composite parent, TableColumnLayout tcl) {
         super(new Table(parent, SWT.FULL_SELECTION | SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL));
@@ -61,30 +59,25 @@ public class DataLinkTableViewer extends TableViewer {
         typeColumn.getColumn().setText(COL_TYPE);
         tcl.setColumnData(typeColumn.getColumn(), new ColumnWeightData(18));
 
-        TableViewerColumn specColumn = new TableViewerColumn(this, SWT.LEFT);
-        specColumn.getColumn().setText(COL_SPEC);
-        tcl.setColumnData(specColumn.getColumn(), new ColumnWeightData(18));
-
-        TableViewerColumn streamColumn = new TableViewerColumn(this, SWT.LEFT);
-        streamColumn.getColumn().setText(COL_STREAM);
-        tcl.setColumnData(streamColumn.getColumn(), new ColumnWeightData(18));
-
         TableViewerColumn statusColumn = new TableViewerColumn(this, SWT.CENTER);
         statusColumn.getColumn().setText(COL_STATUS);
         tcl.setColumnData(statusColumn.getColumn(), new ColumnWeightData(18));
 
-        TableViewerColumn datacount = new TableViewerColumn(this, SWT.RIGHT);
-        datacount.getColumn().setText(COL_DATACOUNT);
-        tcl.setColumnData(datacount.getColumn(), new ColumnWeightData(10));
+        TableViewerColumn inColumn = new TableViewerColumn(this, SWT.RIGHT);
+        inColumn.getColumn().setText(COL_IN);
+        tcl.setColumnData(inColumn.getColumn(), new ColumnWeightData(10));
+
+        TableViewerColumn outColumn = new TableViewerColumn(this, SWT.RIGHT);
+        outColumn.getColumn().setText(COL_OUT);
+        tcl.setColumnData(outColumn.getColumn(), new ColumnWeightData(10));
 
         // Common properties to all columns
         List<TableViewerColumn> columns = new ArrayList<>();
         columns.add(nameColumn);
         columns.add(typeColumn);
-        columns.add(specColumn);
-        columns.add(streamColumn);
         columns.add(statusColumn);
-        columns.add(datacount);
+        columns.add(inColumn);
+        columns.add(outColumn);
         for (TableViewerColumn column : columns) {
             // prevent resize to 0
             column.getColumn().addControlListener(new ControlListener() {
@@ -94,8 +87,9 @@ public class DataLinkTableViewer extends TableViewer {
 
                 @Override
                 public void controlResized(ControlEvent e) {
-                    if (column.getColumn().getWidth() < 5)
+                    if (column.getColumn().getWidth() < 5) {
                         column.getColumn().setWidth(5);
+                    }
                 }
             });
         }
@@ -115,17 +109,19 @@ public class DataLinkTableViewer extends TableViewer {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
                 DataLinkRecord rec = (DataLinkRecord) (getTable().getSelection()[0].getData());
-                if (rec == null)
+                if (rec == null) {
                     return;
+                }
 
                 LinkCatalogue catalogue = LinkCatalogue.getInstance();
-                catalogue.enableLink(rec.getLinkInfo().getInstance(), rec.getLinkInfo().getName()).whenComplete((data, exc) -> {
-                    if (exc != null) {
-                        getTable().getDisplay().asyncExec(() -> {
-                            showMessage(getTable().getShell(), exc.getMessage());
+                catalogue.enableLink(rec.getLinkInfo().getInstance(), rec.getLinkInfo().getName())
+                        .whenComplete((data, exc) -> {
+                            if (exc != null) {
+                                getTable().getDisplay().asyncExec(() -> {
+                                    showMessage(getTable().getShell(), exc.getMessage());
+                                });
+                            }
                         });
-                    }
-                });
             }
         });
 
@@ -140,17 +136,19 @@ public class DataLinkTableViewer extends TableViewer {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
                 DataLinkRecord rec = (DataLinkRecord) (getTable().getSelection()[0].getData());
-                if (rec == null)
+                if (rec == null) {
                     return;
+                }
 
                 LinkCatalogue catalogue = LinkCatalogue.getInstance();
-                catalogue.disableLink(rec.getLinkInfo().getInstance(), rec.getLinkInfo().getName()).whenComplete((data, exc) -> {
-                    if (exc != null) {
-                        getTable().getDisplay().asyncExec(() -> {
-                            showMessage(getTable().getShell(), exc.getMessage());
+                catalogue.disableLink(rec.getLinkInfo().getInstance(), rec.getLinkInfo().getName())
+                        .whenComplete((data, exc) -> {
+                            if (exc != null) {
+                                getTable().getDisplay().asyncExec(() -> {
+                                    showMessage(getTable().getShell(), exc.getMessage());
+                                });
+                            }
                         });
-                    }
-                });
             }
         });
     }

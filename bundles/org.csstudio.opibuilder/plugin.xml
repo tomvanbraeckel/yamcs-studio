@@ -24,12 +24,6 @@
          point="org.eclipse.ui.commands">
       <command
             categoryId="org.eclipse.ui.category.views"
-            description="Enter/Exit compact mode"
-            id="org.csstudio.opibuilder.actions.compactMode"
-            name="Compact Mode">
-      </command>
-      <command
-            categoryId="org.eclipse.ui.category.views"
             description="Enter/Exit Full Screen"
             id="org.csstudio.opibuilder.actions.fullscreen"
             name="Full Screen">
@@ -55,12 +49,6 @@
             name="OPIBuilderKeyBindingScheme">
       </scheme>
       <key
-            commandId="org.csstudio.opibuilder.actions.compactMode"
-            contextId="org.eclipse.ui.contexts.window"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="F8">
-      </key>
-      <key
             commandId="org.csstudio.opibuilder.actions.fullscreen"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
@@ -70,15 +58,27 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="org.csstudio.opibuilder.preferences.CommonPreferencePage"
+            class="org.csstudio.opibuilder.preferences.MainPreferencePage"
             id="org.csstudio.opibuilder.preferences"
-            name="Displays">
+            name="OPI Displays">
+      </page>
+      <page
+            category="org.csstudio.opibuilder.preferences"
+            class="org.csstudio.opibuilder.preferences.OPIColorsPreferencePage"
+            id="org.csstudio.opibuilder.preferences.colors"
+            name="Colors">
+      </page>
+      <page
+            category="org.csstudio.opibuilder.preferences"
+            class="org.csstudio.opibuilder.preferences.OPIFontsPreferencePage"
+            id="org.csstudio.opibuilder.preferences.fonts"
+            name="Fonts">
       </page>
       <page
             category="org.csstudio.opibuilder.preferences"
             class="org.csstudio.opibuilder.preferences.OPIRuntimePreferencePage"
-            id="org.csstudio.opibuilder.preferences.opiruntime"
-            name="OPI Runtime">
+            id="org.csstudio.opibuilder.preferences.runtime"
+            name="Runtime">
       </page>
    </extension>
    <extension
@@ -87,13 +87,6 @@
             id="org.csstudio.opibuilder.actionSet"
             label="OPI Actions"
             visible="true">
-         <action
-               class="org.csstudio.opibuilder.actions.CompactModeAction"
-               definitionId="org.csstudio.opibuilder.actions.compactMode"
-               id="org.csstudio.opibuilder.compactModeAction"
-               label="Compact Mode"
-               style="push">
-         </action>
          <action
                class="org.csstudio.opibuilder.actions.FullScreenAction"
                definitionId="org.csstudio.opibuilder.actions.fullscreen"
@@ -123,54 +116,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="false"
-            id="org.csstudio.opibuilder.showPVInfo"
-            objectClass="org.csstudio.opibuilder.editparts.AbstractBaseEditPart">
-         <action
-               class="org.csstudio.opibuilder.actions.ShowPVInfoAction"
-               enablesFor="1"
-               id="org.csstudio.opibuilder.showPVInfoAction"
-               label="Show PV Info"
-               tooltip="Show detail infomation of PVs on this widget">
-         </action>
-         <visibility>
-            <and>
-               <objectState
-                     name="executionMode"
-                     value="RUN_MODE">
-               </objectState>
-               <objectState
-                     name="hasPVs"
-                     value="true">
-               </objectState>
-            </and>
-         </visibility>
-      </objectContribution>
-      <objectContribution
-            adaptable="true"
-            id="org.csstudio.opibuilder.CSSpopupMenu"
-            objectClass="org.csstudio.platform.model.IProcessVariable">
-         <menu
-               id="org.csstudio.popmenu"
-               label="CSS"
-               path="additions">
-            <groupMarker
-                  name="content">
-            </groupMarker>
-            <separator
-                  name="additions">
-            </separator>
-         </menu>
-         <action
-               class="org.csstudio.opibuilder.actions.OpenOPIProbeAction"
-               icon="icons/OPIRunner.png"
-               id="org.csstudio.opibuilder.openOPIProbeAction"
-               label="OPI Probe"
-               menubarPath="org.csstudio.popmenu/content"
-               tooltip="Send PV name to OPI Probe">
-         </action>
-      </objectContribution>
       <objectContribution
             adaptable="false"
             id="org.csstudio.opibuilder.showMacros"
@@ -246,7 +191,7 @@
             category="org.csstudio.opibuilder.views"
             class="org.csstudio.opibuilder.runmode.OPIView"
             fastViewWidthRatio="0.3"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.opiView"
             name="OPI View">
       </view>
@@ -255,7 +200,7 @@
             category="org.csstudio.opibuilder.views"
             class="org.csstudio.opibuilder.runmode.OPIView"
             fastViewWidthRatio="0.3"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.opiViewLEFT"
             name="OPI View (Left)">
       </view>
@@ -264,7 +209,7 @@
             category="org.csstudio.opibuilder.views"
             class="org.csstudio.opibuilder.runmode.OPIView"
             fastViewWidthRatio="0.3"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.opiViewRIGHT"
             name="OPI View (Right)">
       </view>
@@ -273,7 +218,7 @@
             category="org.csstudio.opibuilder.views"
             class="org.csstudio.opibuilder.runmode.OPIView"
             fastViewWidthRatio="0.3"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.opiViewTOP"
             name="OPI View (Top)">
       </view>
@@ -282,7 +227,7 @@
             category="org.csstudio.opibuilder.views"
             class="org.csstudio.opibuilder.runmode.OPIView"
             fastViewWidthRatio="0.3"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.opiViewBOTTOM"
             name="OPI View (Bottom)">
       </view>
@@ -291,24 +236,10 @@
             category="org.csstudio.opibuilder.views"
             class="org.csstudio.opibuilder.runmode.PlaceHolderView"
             fastViewWidthRatio="0.3"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.placeHolder"
             name="OPI Placeholder">
       </view>
-   </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:org.csstudio.ui.menu.popup.processvariable">
-         <command
-               commandId="org.csstudio.opibuilder.openProbeOPI"
-               icon="icons/OPIRunner.png"
-               label="OPI Probe"
-               style="push"
-               tooltip="Send PV name to OPI Probe">
-         </command>
-      </menuContribution>
    </extension>
 
    <extension
@@ -338,7 +269,7 @@
       <editor
             default="false"
             extensions="opi"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.DisplayLauncher"
             launcher="org.csstudio.opibuilder.runmode.DisplayLauncher"
             name="OPI Runner">
@@ -346,10 +277,55 @@
       <!--editor
             default="false"
             extensions="opi"
-            icon="icons/OPIRunner.png"
+            icon="icons/file_opi.png"
             id="org.csstudio.opibuilder.ShellLauncher"
             launcher="org.csstudio.opibuilder.runmode.ShellLauncher"
             name="OPI Runner (New Window)">
       </editor-->
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <separator
+               name="css"
+               visible="true">
+         </separator>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.popup.any?after=css">
+         <command
+               commandId="org.csstudio.opibuilder.openProbeOPI"
+               icon="icons/probe-16.png"
+               label="Probe"
+               style="push">
+            <visibleWhen>
+               <or>
+                  <with variable="activeMenuSelection">
+                     <iterate>
+                        <adapt type="org.csstudio.csdata.ProcessVariable"/>
+                     </iterate>
+                     <and>
+                        <count value="+"/>
+                     </and>
+                  </with>
+                  <with
+                        variable="activeMenuSelection">
+                     <iterate>
+                        <adapt
+                              type="[Lorg.csstudio.csdata.ProcessVariable;">
+                        </adapt>
+                     </iterate>
+                     <and>
+                        <count value="+"/>
+                     </and>
+                  </with>
+               </or>
+            </visibleWhen>
+         </command>
+      </menuContribution>
    </extension>
 </plugin>

@@ -1,8 +1,6 @@
 package org.yamcs.studio.core.model;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -12,14 +10,13 @@ import org.yamcs.api.ws.WebSocketRequest;
 import org.yamcs.protobuf.Web.WebSocketServerMessage.WebSocketSubscriptionData;
 import org.yamcs.protobuf.Yamcs.TimeInfo;
 import org.yamcs.studio.core.YamcsPlugin;
-import org.yamcs.studio.core.client.YamcsClient;
+import org.yamcs.studio.core.client.YamcsStudioClient;
 import org.yamcs.utils.TimeEncoding;
 
 public class TimeCatalogue implements Catalogue, WebSocketClientCallback {
 
     private volatile long currentTime = TimeEncoding.INVALID_INSTANT;
     private Set<TimeListener> timeListeners = new CopyOnWriteArraySet<>();
-    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US);
 
     public static TimeCatalogue getInstance() {
         return YamcsPlugin.getDefault().getCatalogue(TimeCatalogue.class);
@@ -54,8 +51,9 @@ public class TimeCatalogue implements Catalogue, WebSocketClientCallback {
 
     public Calendar getMissionTimeAsCalendar(boolean wallClockIfUnset) {
         long t = getMissionTime(wallClockIfUnset);
-        if (t == TimeEncoding.INVALID_INSTANT)
+        if (t == TimeEncoding.INVALID_INSTANT) {
             return null;
+        }
 
         Calendar cal = TimeEncoding.toCalendar(t);
         cal.setTimeZone(getTimeZone());
@@ -70,18 +68,9 @@ public class TimeCatalogue implements Catalogue, WebSocketClientCallback {
         return TimeZone.getDefault();
     }
 
-    // must be called on the swt thread due to the dateformatter being reused
-    public String toString(long instant) {
-        // TODO Improve this. Don't use Date
-        Calendar cal = TimeEncoding.toCalendar(instant);
-        cal.setTimeZone(TimeCatalogue.getInstance().getTimeZone());
-        format.setTimeZone(cal.getTimeZone());
-        return format.format(cal.getTime());
-    }
-
     @Override
     public void onYamcsConnected() {
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
+        YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
         yamcsClient.subscribe(new WebSocketRequest("time", "subscribe"), this);
         distributeTime(TimeEncoding.INVALID_INSTANT);
     }
@@ -89,8 +78,9 @@ public class TimeCatalogue implements Catalogue, WebSocketClientCallback {
     @Override
     public void onMessage(WebSocketSubscriptionData msg) {
         if (msg.hasTimeInfo()) {
-            TimeInfo timeInfo = msg.getTimeInfo();
-            distributeTime(timeInfo.getCurrentTime());
+            TimeInfo timeInfo = msg.getTimeInfo();            
+            long instant = TimeEncoding.fromProtobufTimestamp(timeInfo.getCurrentTime());            
+            distributeTime(instant);
         }
     }
 

@@ -1,5 +1,7 @@
 package org.yamcs.studio.core.model;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -9,20 +11,25 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.yamcs.api.ws.WebSocketClientCallback;
+import org.yamcs.protobuf.Mdb.ListParametersResponse;
+import org.yamcs.protobuf.Mdb.MemberInfo;
 import org.yamcs.protobuf.Mdb.ParameterInfo;
+import org.yamcs.protobuf.Mdb.ParameterTypeInfo;
 import org.yamcs.protobuf.Pvalue.ParameterData;
-import org.yamcs.protobuf.Rest.ListParameterInfoResponse;
 import org.yamcs.protobuf.Web.WebSocketServerMessage.WebSocketSubscriptionData;
 import org.yamcs.protobuf.Yamcs.NamedObjectId;
 import org.yamcs.protobuf.Yamcs.NamedObjectList;
 import org.yamcs.protobuf.Yamcs.Value;
 import org.yamcs.studio.core.YamcsPlugin;
 import org.yamcs.studio.core.client.ParameterWebSocketRequest;
-import org.yamcs.studio.core.client.YamcsClient;
+import org.yamcs.studio.core.client.YamcsStudioClient;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -74,7 +81,7 @@ public class ParameterCatalogue implements Catalogue, WebSocketClientCallback {
         unitsById.clear();
     }
 
-    public synchronized void processMetaParameters(List<ParameterInfo> metaParameters) {
+    private synchronized void processMetaParameters(List<ParameterInfo> metaParameters) {
         log.info(String.format("Loaded %d parameters", metaParameters.size()));
         this.metaParameters = new ArrayList<>(metaParameters);
         this.metaParameters.sort((p1, p2) -> {
@@ -84,6 +91,9 @@ public class ParameterCatalogue implements Catalogue, WebSocketClientCallback {
         for (ParameterInfo p : this.metaParameters) {
             NamedObjectId id = NamedObjectId.newBuilder().setName(p.getQualifiedName()).build();
             parametersById.put(id, p);
+            for (NamedObjectId alias : p.getAliasList()) {
+                parametersById.put(alias, p);
+            }
 
             // Update unit index
             if (p != null && p.hasType() && p.getType().getUnitSetCount() > 0) {
@@ -99,43 +109,89 @@ public class ParameterCatalogue implements Catalogue, WebSocketClientCallback {
     }
 
     private void loadMetaParameters() {
-        log.fine("Fetching available parameters");
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
-        String instance = ManagementCatalogue.getCurrentYamcsInstance();
-        yamcsClient.get("/mdb/" + instance + "/parameters?details", null).whenComplete((data, exc) -> {
-            if (exc == null) {
+        Job job = Job.create("Loading parameters", monitor -> {
+            log.fine("Fetching available parameters");
+            YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
+            String instance = ManagementCatalogue.getCurrentYamcsInstance();
+            int pageSize = 500;
+            List<ParameterInfo> parameters = new ArrayList<>();
+
+            String next = null;
+            while (true) {
+                String url = "/mdb/" + instance + "/parameters?details&limit=" + pageSize;
+                if (next != null) {
+                    url += "&next=" + next;
+                }
                 try {
-                    ListParameterInfoResponse response = ListParameterInfoResponse.parseFrom(data);
-                    processMetaParameters(response.getParameterList());
-                } catch (InvalidProtocolBufferException e) {
-                    log.log(Level.SEVERE, "Failed to decode server response", e);
+                    byte[] data = yamcsClient.get(url, null).get();
+                    try {
+                        ListParametersResponse response = ListParametersResponse.parseFrom(data);
+                        parameters.addAll(response.getParameterList());
+                        if (response.hasContinuationToken()) {
+                            next = response.getContinuationToken();
+                        } else {
+                            break;
+                        }
+                    } catch (InvalidProtocolBufferException e) {
+                        log.log(Level.SEVERE, "Failed to decode server response", e);
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    return Status.CANCEL_STATUS;
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    log.log(Level.SEVERE, "Exception while loading parameters: " + cause.getMessage(), cause);
+                    return Status.OK_STATUS;
                 }
             }
+            processMetaParameters(parameters);
+            return Status.OK_STATUS;
         });
+        job.setPriority(Job.LONG);
+        job.schedule(1000L);
     }
 
     public CompletableFuture<byte[]> requestParameterDetail(String qualifiedName) {
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
+        YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
         String instance = ManagementCatalogue.getCurrentYamcsInstance();
-        return yamcsClient.get("/mdb/" + instance + "/parameters" + qualifiedName, null);
+        String path = encodePath("/mdb/" + instance + "/parameters" + qualifiedName);
+        return yamcsClient.get(path, null);
     }
 
     public CompletableFuture<byte[]> fetchParameterValue(String instance, String qualifiedName) {
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
-        return yamcsClient.get("/archive/" + instance + "/parameters2" + qualifiedName + "?limit=1", null);
+        YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
+        String path = encodePath("/archive/" + instance + "/parameters2" + qualifiedName);
+        return yamcsClient.get(path + "?limit=1", null);
     }
 
     public CompletableFuture<byte[]> setParameter(String processor, NamedObjectId id, Value value) {
         String pResource = toURISegments(id);
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
+        YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
         String instance = ManagementCatalogue.getCurrentYamcsInstance();
-        return yamcsClient.put("/processors/" + instance + "/" + processor + "/parameters" + pResource, value);
+        String path = encodePath("/processors/" + instance + "/" + processor + "/parameters" + pResource);
+        return yamcsClient.put(path, value);
     }
 
     public void subscribeParameters(NamedObjectList idList) {
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
+        YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
         if (yamcsClient.isConnected()) {
             yamcsClient.subscribe(new ParameterWebSocketRequest("subscribe", idList), this);
+        }
+    }
+
+    /**
+     * This encodes the path only (not the query string). This was introduced to encode square brackets in a qualified
+     * name of an array entry.
+     */
+    private static String encodePath(String arg) {
+        try {
+            String[] segments = arg.split("/");
+            for (int i = 0; i < segments.length; i++) {
+                segments[i] = URLEncoder.encode(segments[i], "UTF-8");
+            }
+            return String.join("/", segments);
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError();
         }
     }
 
@@ -150,15 +206,69 @@ public class ParameterCatalogue implements Catalogue, WebSocketClientCallback {
     }
 
     public void unsubscribeParameters(NamedObjectList idList) {
-        YamcsClient yamcsClient = YamcsPlugin.getYamcsClient();
+        YamcsStudioClient yamcsClient = YamcsPlugin.getYamcsClient();
         if (yamcsClient.isConnected()) {
             yamcsClient.sendWebSocketMessage(new ParameterWebSocketRequest("unsubscribe", idList));
         }
     }
 
-    // TODO find usages. This will only provide condensed info
+    /**
+     * Returns the ParameterInfo for an ID, the ID may also point to an aggregate member or an array entry, the returned
+     * ParameterInfo will then match the containing parameter.
+     */
     public ParameterInfo getParameterInfo(NamedObjectId id) {
+        String[] parts = removeArrayAndAggregateOffset(id.getName());
+        if (parts[1] != null) {
+            id = NamedObjectId.newBuilder(id).setName(parts[0]).build();
+        }
         return parametersById.get(id);
+    }
+
+    /**
+     * Returns the ParameterTypeInfo for an ID, the ID may also point to an aggregate member or an array entry, the
+     * returned ParameterInfo will then match that specific path into the parameter.
+     */
+    public ParameterTypeInfo getParameterTypeInfo(NamedObjectId id) {
+        String suffix = removeArrayAndAggregateOffset(id.getName())[1];
+
+        ParameterInfo parameter = getParameterInfo(id);
+        if (parameter == null) {
+            return null;
+        }
+
+        String qualifiedNameWithSuffix = parameter.getQualifiedName();
+        if (suffix != null) {
+            qualifiedNameWithSuffix += suffix;
+        }
+
+        return findMatchingParameterType(parameter.getType(), parameter.getQualifiedName(), qualifiedNameWithSuffix);
+    }
+
+    private ParameterTypeInfo findMatchingParameterType(ParameterTypeInfo parent, String parentName,
+            String qualifiedNameWithSuffix) {
+        if (parent == null) {
+            return null;
+        } else if (qualifiedNameWithSuffix.matches(parentName)) {
+            return parent;
+        } else {
+            for (MemberInfo member : parent.getMemberList()) {
+                ParameterTypeInfo memberType = member.getType();
+                String name = parentName + "." + member.getName();
+                ParameterTypeInfo match = findMatchingParameterType(memberType, name, qualifiedNameWithSuffix);
+                if (match != null) {
+                    return match;
+                }
+            }
+            if (parent.hasArrayInfo()) {
+                ParameterTypeInfo entryType = parent.getArrayInfo().getType();
+                String name = parentName + "\\[[0-9]+\\]";
+                ParameterTypeInfo match = findMatchingParameterType(entryType, name, qualifiedNameWithSuffix);
+                if (match != null) {
+                    return match;
+                }
+            }
+        }
+        return null;
     }
 
     public String getCombinedUnit(NamedObjectId id) {
@@ -174,6 +284,37 @@ public class ParameterCatalogue implements Catalogue, WebSocketClientCallback {
             return id.getName();
         } else {
             return "/" + id.getNamespace() + "/" + id.getName();
+        }
+    }
+
+    /**
+     * Splits a PV name into the actual parameter name, and the struct or array path within that parameter.
+     * 
+     * For example: "/bla/bloe.f[3].heh" becomes { "/bla/bloe", ".f[3].heh" }
+     */
+    private static String[] removeArrayAndAggregateOffset(String name) {
+        int searchFrom = name.lastIndexOf('/');
+
+        int trimFrom = -1;
+
+        int arrayStart = name.indexOf('[', searchFrom);
+        if (arrayStart != -1) {
+            trimFrom = arrayStart;
+        }
+
+        int memberStart = name.indexOf('.', searchFrom);
+        if (memberStart != -1) {
+            if (trimFrom >= 0) {
+                trimFrom = Math.min(trimFrom, memberStart);
+            } else {
+                trimFrom = memberStart;
+            }
+        }
+
+        if (trimFrom >= 0) {
+            return new String[] { name.substring(0, trimFrom), name.substring(trimFrom) };
+        } else {
+            return new String[] { name, null };
         }
     }
 }

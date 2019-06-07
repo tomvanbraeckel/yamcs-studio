@@ -33,10 +33,10 @@ import org.eclipse.ui.IWorkbenchPart;
 public class ChangeOrderAction extends SelectionAction {
 
     public enum OrderType{
-        TO_FRONT("Bring to Front", "icons/shape_move_front.png"), //$NON-NLS-2$
-        TO_BACK("Send to Back", "icons/shape_move_back.png"),    //$NON-NLS-2$
-        STEP_FRONT("Bring Forward", "icons/shape_move_forwards.png"), //$NON-NLS-2$
-        STEP_BACK("Send Backward", "icons/shape_move_backwards.png");//$NON-NLS-2$
+        TO_FRONT("Bring to Front", "icons/shape_move_front.png"),
+        TO_BACK("Send to Back", "icons/shape_move_back.png"),   
+        STEP_FRONT("Bring Forward", "icons/shape_move_forwards.png"),
+        STEP_BACK("Send Backward", "icons/shape_move_backwards.png");
 
         private String label;
         private String iconPath;
@@ -50,7 +50,7 @@ public class ChangeOrderAction extends SelectionAction {
         }
 
         public String getActionID(){
-            return "org.csstudio.opibuilder.actions." + toString(); //$NON-NLS-1$
+            return "org.csstudio.opibuilder.actions." + toString();
         }
 
         public ImageDescriptor getImageDescriptor(){

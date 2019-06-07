@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: BOY Editor Plugin
 Bundle-SymbolicName: org.csstudio.opibuilder.editor;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.2.6.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.filesystem,
  org.eclipse.ui.editors,
@@ -13,7 +13,6 @@ Require-Bundle: org.eclipse.core.filesystem,
  org.csstudio.ui.util,
  org.eclipse.core.runtime,
  org.eclipse.search,
- org.csstudio.autocomplete.ui,
  org.csstudio.utility.batik,
  org.eclipse.jface,
  org.eclipse.gef,
@@ -31,3 +30,4 @@ Export-Package: org.csstudio.opibuilder.actions,
  org.csstudio.opibuilder.properties.support,
  org.csstudio.opibuilder.visualparts,
  org.csstudio.opibuilder.wizards
+Automatic-Module-Name: org.csstudio.opibuilder.editor

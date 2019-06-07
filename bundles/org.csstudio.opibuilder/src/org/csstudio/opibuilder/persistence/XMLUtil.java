@@ -32,7 +32,6 @@ import org.csstudio.opibuilder.model.ConnectionModel;
 import org.csstudio.opibuilder.model.DisplayModel;
 import org.csstudio.opibuilder.persistence.LineAwareXMLParser.LineAwareElement;
 import org.csstudio.opibuilder.preferences.PreferencesHelper;
-import org.csstudio.opibuilder.util.ConsoleService;
 import org.csstudio.opibuilder.util.ErrorHandlerUtil;
 import org.csstudio.opibuilder.util.MacroUtil;
 import org.csstudio.opibuilder.util.MacrosInput;
@@ -58,23 +57,23 @@ import org.osgi.framework.Version;
  */
 public class XMLUtil {
 
-    public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"; //$NON-NLS-1$
+    public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
-    public static String XMLTAG_DISPLAY = "display"; //$NON-NLS-1$
+    public static String XMLTAG_DISPLAY = "display";
 
-    public static String XMLTAG_WIDGET = "widget"; //$NON-NLS-1$
+    public static String XMLTAG_WIDGET = "widget";
 
-    public static String XMLTAG_CONNECTION = "connection"; //$NON-NLS-1$
+    public static String XMLTAG_CONNECTION = "connection";
 
     public static Set<String> WIDGET_TAGS = new HashSet<>(
             Arrays.asList(XMLTAG_DISPLAY, XMLTAG_WIDGET, XMLTAG_CONNECTION));
 
-    public static String XMLATTR_TYPEID = "typeId"; //$NON-NLS-1$
+    public static String XMLATTR_TYPEID = "typeId";
 
-    public static String XMLATTR_PROPID = "id"; //$NON-NLS-1$
-    public static String XMLATTR_VERSION = "version"; //$NON-NLS-1$
+    public static String XMLATTR_PROPID = "id";
+    public static String XMLATTR_VERSION = "version";
 
-    public static String XMLTAG_WIDGET_UID = AbstractWidgetModel.PROP_WIDGET_UID; // $NON-NLS-1$
+    public static String XMLTAG_WIDGET_UID = AbstractWidgetModel.PROP_WIDGET_UID;
     public static String XMLTAG_OPI_FILE = AbstractLinkingContainerModel.PROP_OPI_FILE;
 
     /**
@@ -129,8 +128,9 @@ public class XMLUtil {
      */
     private static XMLOutputter getXMLOutputter(boolean prettyFormat) {
         Format format = Format.getRawFormat();
-        if (prettyFormat)
-            format.setIndent("  "); //$NON-NLS-1$
+        if (prettyFormat) {
+            format.setIndent("  ");
+        }
         // Always use Unix-style line endings.
         format.setLineSeparator("\n");
         XMLOutputter xmlOutputter = new XMLOutputter();
@@ -166,7 +166,7 @@ public class XMLUtil {
     public static void widgetToOutputStream(AbstractWidgetModel widgetModel, OutputStream out, boolean prettyFormat)
             throws IOException {
         XMLOutputter xmlOutputter = getXMLOutputter(prettyFormat);
-        out.write(XML_HEADER.getBytes("UTF-8")); //$NON-NLS-1$
+        out.write(XML_HEADER.getBytes("UTF-8"));
         xmlOutputter.output(widgetToXMLElement(widgetModel), out);
     }
 
@@ -253,16 +253,9 @@ public class XMLUtil {
                 if (display == null) {
                     display = Display.getDefault();
                 }
-                if (display != null)
-                    display.asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            // MessageDialog.openWarning(null, "Warning", message);
-                            ConsoleService.getInstance().writeWarning(message);
-                            OPIBuilderPlugin.getLogger().log(Level.WARNING,
-                                    message); // $NON-NLS-1$
-                        }
-                    });
+                if (display != null) {
+                    display.asyncExec(() -> OPIBuilderPlugin.getLogger().log(Level.WARNING, message));
+                }
             }
 
         }
@@ -300,22 +293,24 @@ public class XMLUtil {
     private static AbstractWidgetModel XMLElementToWidgetSub(Element element, DisplayModel displayModel,
             List<IPath> trace,
             final MacrosInput macrosInput_) throws Exception {
-        if (element == null)
+        if (element == null) {
             return null;
+        }
 
         AbstractWidgetModel result = null;
 
         if (WIDGET_TAGS.contains(element.getName())) {
             result = fillWidgets(element, displayModel);
 
-            if (result instanceof AbstractContainerModel)
+            if (result instanceof AbstractContainerModel) {
                 fillLinkingContainersSub((AbstractContainerModel) result, trace, macrosInput_);
+            }
             fillConnections(element, displayModel);
 
             return result;
         } else {
             String errorMessage = "Unknown Tag: " + element.getName();
-            ConsoleService.getInstance().writeError(errorMessage);
+            OPIBuilderPlugin.getLogger().log(Level.SEVERE, errorMessage);
             return null;
         }
     }
@@ -345,25 +340,27 @@ public class XMLUtil {
      */
     @SuppressWarnings("rawtypes")
     public static AbstractWidgetModel fillWidgets(Element element, DisplayModel displayModel) throws Exception {
-        if (element == null)
+        if (element == null) {
             return null;
+        }
 
         AbstractWidgetModel rootWidgetModel = null;
 
         // Determine root widget model
         if (element.getName().equals(XMLTAG_DISPLAY)) {
-            if (displayModel != null)
+            if (displayModel != null) {
                 rootWidgetModel = displayModel;
-            else
+            } else {
                 rootWidgetModel = new DisplayModel(null);
+            }
         } else if (element.getName().equals(XMLTAG_WIDGET)) {
             String typeId = element.getAttributeValue(XMLATTR_TYPEID);
             WidgetDescriptor desc = WidgetsService.getInstance().getWidgetDescriptor(typeId);
-            if (desc != null)
+            if (desc != null) {
                 rootWidgetModel = desc.getWidgetModel();
+            }
             if (rootWidgetModel == null) {
-                String errorMessage = NLS.bind("Fail to load the widget: {0}\n " +
-                        "The widget may not exist, as a consequence, the widget will be ignored.", typeId);
+                String errorMessage = NLS.bind("Unknown widget: {0}", typeId);
                 ErrorHandlerUtil.handleError(errorMessage, new Exception("Widget does not exist."));
                 return null;
             }
@@ -371,7 +368,7 @@ public class XMLUtil {
             rootWidgetModel = new ConnectionModel(displayModel);
         } else {
             String errorMessage = "Unknown Tag: " + element.getName();
-            ConsoleService.getInstance().writeError(errorMessage);
+            OPIBuilderPlugin.getLogger().log(Level.SEVERE, errorMessage);
             return null;
         }
 
@@ -383,13 +380,15 @@ public class XMLUtil {
             Iterator iterator = children.iterator();
             while (iterator.hasNext()) {
                 Element subElement = (Element) iterator.next();
-                if (subElement.getName().equals(XMLTAG_WIDGET))
+                if (subElement.getName().equals(XMLTAG_WIDGET)) {
                     container.addChild(fillWidgets(subElement, displayModel));
+                }
             }
         }
 
-        if (displayModel != null)
+        if (displayModel != null) {
             rootWidgetModel.processVersionDifference(displayModel.getBOYVersion());
+        }
 
         return rootWidgetModel;
     }
@@ -443,8 +442,9 @@ public class XMLUtil {
 
     @SuppressWarnings("rawtypes")
     private static void setPropertiesFromXML(Element element, AbstractWidgetModel model) {
-        if (model == null || element == null)
+        if (model == null || element == null) {
             return;
+        }
 
         String versionOnFile = element.getAttributeValue(XMLATTR_VERSION);
         model.setVersionOnFile(Version.parseVersion(versionOnFile));
@@ -469,7 +469,6 @@ public class XMLUtil {
                             "The default property value will be setted instead. \n" + e;
                     // MessageDialog.openError(null, "OPI File format error", errorMessage + "\n" + e.getMessage());
                     OPIBuilderPlugin.getLogger().log(Level.WARNING, errorMessage, e);
-                    ConsoleService.getInstance().writeWarning(errorMessage);
                 }
             }
         }
@@ -503,8 +502,9 @@ public class XMLUtil {
             final MacrosInput macrosInput_)
             throws Exception {
 
-        if (container == null)
+        if (container == null) {
             return;
+        }
 
         if (container.getRootDisplayModel() != null &&
                 container.getRootDisplayModel().getOpiFilePath() != null) {
@@ -538,13 +538,15 @@ public class XMLUtil {
                 }
 
                 // mark connection as it is loaded from linked opi
-                for (AbstractWidgetModel w : inside.getAllDescendants())
-                    for (ConnectionModel conn : w.getSourceConnections())
+                for (AbstractWidgetModel w : inside.getAllDescendants()) {
+                    for (ConnectionModel conn : w.getSourceConnections()) {
                         conn.setLoadedFromLinkedOpi(true);
+                    }
+                }
 
                 AbstractContainerModel loadTarget = inside;
 
-                if (!container.getGroupName().trim().equals("")) { //$NON-NLS-1$
+                if (!container.getGroupName().trim().equals("")) {
                     AbstractWidgetModel group = inside.getChildByName(container.getGroupName());
                     if (group != null && group instanceof AbstractContainerModel) {
                         loadTarget = (AbstractContainerModel) group;
@@ -691,7 +693,7 @@ public class XMLUtil {
     }
 
     private static Element stringToXML(String xmlString) throws JDOMException, IOException {
-        InputStream stream = new ByteArrayInputStream(xmlString.getBytes("UTF-8")); //$NON-NLS-1$
+        InputStream stream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
         return inputStreamToXML(stream);
     }
 }

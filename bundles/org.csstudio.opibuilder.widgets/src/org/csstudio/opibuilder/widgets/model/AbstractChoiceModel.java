@@ -29,22 +29,22 @@ public abstract class AbstractChoiceModel extends AbstractPVWidgetModel {
     /**
      * Items of the choice widget.
      */
-    public static final String PROP_ITEMS = "items";//$NON-NLS-1$
+    public static final String PROP_ITEMS = "items";
 
     /**
      * If this is true, items will be loaded from input Enum PV.
      */
-    public static final String PROP_ITEMS_FROM_PV = "items_from_pv";//$NON-NLS-1$
+    public static final String PROP_ITEMS_FROM_PV = "items_from_pv";
 
     /**
      * The color of the selected item.
      */
-    public static final String PROP_SELECTED_COLOR = "selected_color";//$NON-NLS-1$
+    public static final String PROP_SELECTED_COLOR = "selected_color";
 
     public static final RGB DEFAULT_SELECTED_COLOR = CustomMediaFactory.COLOR_WHITE;
 
     /** True if items should be horizontal arranged.*/
-    public static final String PROP_HORIZONTAL = "horizontal"; //$NON-NLS-1$
+    public static final String PROP_HORIZONTAL = "horizontal";
 
     public static final String[] DEFAULT_ITEMS = new String[]{"Choice 1", "Choice 2", "Choice 3"};
 

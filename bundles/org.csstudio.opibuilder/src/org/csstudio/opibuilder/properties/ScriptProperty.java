@@ -30,30 +30,31 @@ public class ScriptProperty extends AbstractWidgetProperty {
     /**
      * XML ELEMENT name <code>PATH</code>.
      */
-    public static final String XML_ELEMENT_PATH = "path"; //$NON-NLS-1$
+    public static final String XML_ELEMENT_PATH = "path";
 
     /**
      * XML ATTRIBUTE name <code>PATHSTRING</code>.
      */
-    public static final String XML_ATTRIBUTE_PATHSTRING = "pathString"; //$NON-NLS-1$
+    public static final String XML_ATTRIBUTE_PATHSTRING = "pathString";
 
-    public static final String XML_ATTRIBUTE_CHECKCONNECT = "checkConnect"; //$NON-NLS-1$
+    public static final String XML_ATTRIBUTE_CHECKCONNECT = "checkConnect";
 
-    public static final String XML_ATTRIBUTE_SKIP_FIRST_EXECUTION = "sfe"; //$NON-NLS-1$
-    public static final String XML_ATTRIBUTE_STOP_EXECUTE_ON_ERROR = "seoe"; //$NON-NLS-1$
+    public static final String XML_ATTRIBUTE_SKIP_FIRST_EXECUTION = "sfe";
+    public static final String XML_ATTRIBUTE_STOP_EXECUTE_ON_ERROR = "seoe";
 
-    public static final String EMBEDDEDJS = "EmbeddedJs"; ////$NON-NLS-1$
+    public static final String EMBEDDEDJS = "EmbeddedJs";
+    public static final String EMBEDDEDPY = "EmbeddedPy";
 
     /**
      * XML Element name <code>PV</code>.
      */
-    public static final String XML_ELEMENT_PV = "pv"; //$NON-NLS-1$
+    public static final String XML_ELEMENT_PV = "pv";
 
-    public static final String XML_ATTRIBUTE_TRIGGER = "trig"; //$NON-NLS-1$
+    public static final String XML_ATTRIBUTE_TRIGGER = "trig";
 
-    public static final String XML_ELEMENT_SCRIPT_TEXT = "scriptText"; //$NON-NLS-1$
+    public static final String XML_ELEMENT_SCRIPT_TEXT = "scriptText";
 
-    private static final String XML_ELEMENT_SCRIPT_NAME = "scriptName"; //$NON-NLS-1$
+    private static final String XML_ELEMENT_SCRIPT_NAME = "scriptName";
 
     /**
      * Script Property Constructor. The property value type is {@link ScriptsInput}.
@@ -121,6 +122,11 @@ public class ScriptProperty extends AbstractWidgetProperty {
                 sd.setScriptType(ScriptType.JAVASCRIPT);
                 sd.setScriptText(se.getChildText(XML_ELEMENT_SCRIPT_TEXT));
                 sd.setScriptName(se.getChildText(XML_ELEMENT_SCRIPT_NAME));
+            } else if (se.getAttributeValue(XML_ATTRIBUTE_PATHSTRING).equals(EMBEDDEDPY)) {
+                sd.setEmbedded(true);
+                sd.setScriptType(ScriptType.PYTHON);
+                sd.setScriptText(se.getChildText(XML_ELEMENT_SCRIPT_TEXT));
+                sd.setScriptName(se.getChildText(XML_ELEMENT_SCRIPT_NAME));
             } else
                 sd = new ScriptData(new Path(se.getAttributeValue(XML_ATTRIBUTE_PATHSTRING)));
             if (se.getAttributeValue(XML_ATTRIBUTE_CHECKCONNECT) != null)
@@ -152,6 +158,8 @@ public class ScriptProperty extends AbstractWidgetProperty {
             if (scriptData.isEmbedded()) {
                 if (scriptData.getScriptType() == ScriptType.JAVASCRIPT)
                     pathString = EMBEDDEDJS;
+                else if (scriptData.getScriptType() == ScriptType.PYTHON)
+                    pathString = EMBEDDEDPY;
                 Element scriptNameElement = new Element(XML_ELEMENT_SCRIPT_NAME);
                 scriptNameElement.setText(scriptData.getScriptName());
                 pathElement.addContent(scriptNameElement);

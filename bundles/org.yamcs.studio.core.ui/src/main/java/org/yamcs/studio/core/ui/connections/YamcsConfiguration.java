@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import org.yamcs.api.YamcsConnectionProperties;
 import org.yamcs.api.YamcsConnectionProperties.Protocol;
-import org.yamcs.security.UsernamePasswordToken;
 
 /**
  * UI class. Used to maintain state of a server in the connection manager dialog
@@ -18,10 +17,9 @@ public class YamcsConfiguration {
     private String primaryHost;
     private Integer primaryPort;
 
-    private String failoverHost;
-    private Integer failoverPort;
-
     private boolean savePassword;
+    private boolean ssl;
+    private String caCertFile;
 
     public String getInstance() {
         return instance;
@@ -45,6 +43,14 @@ public class YamcsConfiguration {
 
     public String getUser() {
         return user;
+    }
+
+    public void setCaCertFile(String caCertFile) {
+        this.caCertFile = caCertFile;
+    }
+
+    public String getCaCertFile() {
+        return caCertFile;
     }
 
     public boolean isAnonymous() {
@@ -75,26 +81,6 @@ public class YamcsConfiguration {
         this.primaryPort = primaryPort;
     }
 
-    public void setFailoverHost(String failoverHost) {
-        this.failoverHost = failoverHost;
-    }
-
-    public String getFailoverHost() {
-        return failoverHost;
-    }
-
-    public void setFailoverPort(Integer failoverPort) {
-        this.failoverPort = failoverPort;
-    }
-
-    public Integer getFailoverPort() {
-        return failoverPort;
-    }
-
-    public boolean isFailoverConfigured() {
-        return failoverHost != null;
-    }
-
     public boolean isSavePassword() {
         return savePassword;
     }
@@ -103,7 +89,15 @@ public class YamcsConfiguration {
         this.savePassword = savePassword;
     }
 
-    public String getPrimaryConnectionString() {
+    public boolean isSsl() {
+        return ssl;
+    }
+
+    public void setSsl(boolean ssl) {
+        this.ssl = ssl;
+    }
+
+    public String getConnectionString() {
         if (instance == null || "".equals(instance)) {
             return "yamcs://" + primaryHost + ":" + primaryPort;
         } else {
@@ -111,38 +105,14 @@ public class YamcsConfiguration {
         }
     }
 
-    public String getFailoverConnectionString() {
-        if (isFailoverConfigured()) {
-            if (instance == null || "".equals(instance)) {
-                return "yamcs://" + failoverHost + ":" + failoverPort;
-            } else {
-                return "yamcs://" + failoverHost + ":" + failoverPort + "/" + instance;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    public YamcsConnectionProperties getPrimaryConnectionProperties() {
+    public YamcsConnectionProperties getConnectionProperties() {
         YamcsConnectionProperties yprops = new YamcsConnectionProperties(primaryHost, primaryPort, instance);
         yprops.setProtocol(Protocol.http);
+        yprops.setTls(ssl);
         if (!isAnonymous()) {
-            yprops.setAuthenticationToken(new UsernamePasswordToken(user, password));
+            yprops.setCredentials(user, password.toCharArray());
         }
         return yprops;
-    }
-
-    public YamcsConnectionProperties getFailoverConnectionProperties() {
-        if (failoverHost != null) {
-            YamcsConnectionProperties yprops = new YamcsConnectionProperties(failoverHost, failoverPort, instance);
-            yprops.setProtocol(Protocol.http);
-            if (!isAnonymous()) {
-                yprops.setAuthenticationToken(new UsernamePasswordToken(user, password));
-            }
-            return yprops;
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -152,8 +122,9 @@ public class YamcsConfiguration {
         // We do need an equals-method though, as it is used to compare the
         // last-used configuration
         // with the list of all configurations.
-        if (obj == null)
+        if (obj == null) {
             return false;
+        }
         YamcsConfiguration other = (YamcsConfiguration) obj;
         return Objects.equals(name, other.name);
     }

@@ -6,8 +6,10 @@ import java.util.List;
 
 import org.diirt.vtype.VEnum;
 import org.yamcs.protobuf.Mdb.EnumValue;
+import org.yamcs.protobuf.Mdb.ParameterTypeInfo;
 import org.yamcs.protobuf.Pvalue.ParameterValue;
-import org.yamcs.protobuf.Yamcs.Value;
+import org.yamcs.protobuf.Yamcs.NamedObjectId;
+import org.yamcs.studio.core.model.ParameterCatalogue;
 import org.yamcs.studio.css.core.pvmanager.PVConnectionInfo;
 
 public class EnumeratedVType extends YamcsVType implements VEnum {
@@ -21,26 +23,7 @@ public class EnumeratedVType extends YamcsVType implements VEnum {
 
     @Override
     public int getIndex() {
-        Value rawValue = pval.getRawValue();
-        switch (rawValue.getType()) {
-        case UINT32:
-            return rawValue.getUint32Value();
-        case UINT64:
-            return (int) rawValue.getUint64Value();
-        case SINT32:
-            return rawValue.getSint32Value();
-        case SINT64:
-            return (int) rawValue.getSint64Value();
-        case FLOAT:
-            return (int) rawValue.getFloatValue();
-        case DOUBLE:
-            return (int) rawValue.getDoubleValue();
-        case STRING:
-            long longValue = Long.decode(rawValue.getStringValue());
-            return (int) longValue;
-        default:
-            return -1;
-        }
+        return (int) pval.getEngValue().getSint64Value();
     }
 
     @Override
@@ -50,7 +33,24 @@ public class EnumeratedVType extends YamcsVType implements VEnum {
 
     @Override
     public List<String> getLabels() {
-        List<EnumValue> enumValues = info.parameter.getType().getEnumValueList();
+        ParameterCatalogue catalogue = ParameterCatalogue.getInstance();
+
+        // TODO Get an id matching the qualified name from the info object
+        // (not e.g. the opsname)
+        // But be careful that any suffixes ('[]' or '.') are kept
+        NamedObjectId id = NamedObjectId.newBuilder()
+                .setName(pval.getId().getName())
+                .build();
+
+        ParameterTypeInfo specificPtype = catalogue.getParameterTypeInfo(id);
+        return getLabelsForType(specificPtype);
+    }
+
+    static List<String> getLabelsForType(ParameterTypeInfo ptype) {
+        if (ptype == null) {
+            return Collections.emptyList();
+        }
+        List<EnumValue> enumValues = ptype.getEnumValueList();
         if (enumValues != null) {
             List<String> labels = new ArrayList<>(enumValues.size());
             for (EnumValue enumValue : enumValues) {

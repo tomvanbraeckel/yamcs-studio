@@ -46,7 +46,7 @@ public class PartZoomComboContributionItem extends ContributionItem implements
      *            used to add a PartListener
      */
     public PartZoomComboContributionItem(IPartService partService) {
-        this(partService, "8888%");//$NON-NLS-1$
+        this(partService, "8888%");
     }
 
     /**
@@ -84,7 +84,7 @@ public class PartZoomComboContributionItem extends ContributionItem implements
         try {
             if (zoomManager == null) {
                 combo.setEnabled(false);
-                combo.setText(""); //$NON-NLS-1$
+                combo.setText("");
             } else {
                 if (repopulateCombo)
                     combo.setItems(getZoomManager().getZoomLevelsAsText());
@@ -97,7 +97,7 @@ public class PartZoomComboContributionItem extends ContributionItem implements
                 combo.setEnabled(true);
             }
         } catch (SWTException exception) {
-            if (!SWT.getPlatform().equals("gtk")) //$NON-NLS-1$
+            if (!SWT.getPlatform().equals("gtk"))
                 throw exception;
         }
     }
@@ -192,7 +192,7 @@ public class PartZoomComboContributionItem extends ContributionItem implements
      */
     @Override
     public final void fill(Menu parent, int index) {
-        Assert.isTrue(false, "Can't add a control to a menu");//$NON-NLS-1$
+        Assert.isTrue(false, "Can't add a control to a menu");
     }
 
     /**

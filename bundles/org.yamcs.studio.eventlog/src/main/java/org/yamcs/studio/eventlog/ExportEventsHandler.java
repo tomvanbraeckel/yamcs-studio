@@ -1,10 +1,11 @@
 package org.yamcs.studio.eventlog;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -17,11 +18,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.yamcs.protobuf.Yamcs.Event;
-import org.yamcs.utils.TimeEncoding;
-
-import com.csvreader.CsvWriter;
+import org.yamcs.studio.core.ui.utils.CsvWriter;
 
 public class ExportEventsHandler extends AbstractHandler {
+
+    private static final Logger log = Logger.getLogger(ExportEventsHandler.class.getName());
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -29,7 +30,6 @@ public class ExportEventsHandler extends AbstractHandler {
         IWorkbenchPart part = HandlerUtil.getActivePartChecked(event);
         EventLogView eventLogView = (EventLogView) part;
 
-        // Ask for file to export
         FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
         dialog.setFilterExtensions(new String[] { "*.csv" });
         String targetFile = dialog.open();
@@ -37,39 +37,35 @@ public class ExportEventsHandler extends AbstractHandler {
             return null;
         }
 
-        // Write CSV
         try {
-            List<Event> events = eventLogView.getEventLog().getEvents();
+            List<Event> events = eventLogView.getEventLog().getSortedEvents();
             writeEvents(new File(targetFile), events);
             MessageDialog.openInformation(shell, "Export Events", "Events exported successfully.");
         } catch (Exception e) {
+            log.log(Level.SEVERE, "Failed to export events: " + e.getMessage(), e);
             MessageDialog.openError(shell, "Export Events",
-                    "Unable to perform events export.\nDetails:" + e.getMessage());
+                    "Unable to export events.\nDetails:" + e.getMessage());
         }
 
         return null;
     }
 
     private void writeEvents(File targetFile, List<Event> events) throws IOException {
-        CsvWriter writer = null;
-        try {
-            writer = new CsvWriter(new FileOutputStream(targetFile), '\t', Charset.forName("UTF-8"));
-            writer.writeRecord(new String[] { "Sequence Number", "Severity", "Message", "Source", "Type",
-                    "Reception Time", "Generation Time" });
-            writer.setForceQualifier(true);
+        try (CsvWriter writer = new CsvWriter(new FileWriter(targetFile))) {
+            writer.writeHeader(new String[] {
+                    "Severity", "Message", "Type", "Source", "Generation", "Reception", "Sequence Number"
+            });
             for (Event event : events) {
                 writer.writeRecord(new String[] {
-                        event.getSeqNumber() + "",
-                        event.getSeverity().name(),
-                        event.getMessage(),
-                        event.getSource() != null ? event.getSource() : "",
-                        event.getType() != null ? event.getType() : "",
-                        TimeEncoding.toString((event).getReceptionTime()),
-                        TimeEncoding.toString((event).getGenerationTime()) });
+                        event.hasSeverity() ? "" + event.getSeverity() : "",
+                        event.hasMessage() ? event.getMessage() : "",
+                        event.hasType() ? event.getType() : "",
+                        event.hasSource() ? event.getSource() : "",
+                        event.hasGenerationTimeUTC() ? event.getGenerationTimeUTC() : "",
+                        event.hasReceptionTimeUTC() ? event.getReceptionTimeUTC() : "",
+                        event.hasSeqNumber() ? "" + event.getSeqNumber() : ""
+                });
             }
-        } finally {
-            writer.close();
         }
     }
-
 }

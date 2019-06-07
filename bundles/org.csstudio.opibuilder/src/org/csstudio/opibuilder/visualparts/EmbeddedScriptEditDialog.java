@@ -13,6 +13,8 @@ import org.csstudio.opibuilder.script.ScriptService;
 import org.csstudio.opibuilder.script.ScriptService.ScriptType;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -46,8 +48,9 @@ public class EmbeddedScriptEditDialog extends HelpTrayDialog {
     public EmbeddedScriptEditDialog(Shell parentShell, ScriptData scriptData) {
         super(parentShell);
         setShellStyle(getShellStyle() | SWT.RESIZE);
-        if (scriptData != null)
+        if (scriptData != null) {
             this.scriptData = scriptData.getCopy();
+        }
     }
 
     @Override
@@ -56,8 +59,9 @@ public class EmbeddedScriptEditDialog extends HelpTrayDialog {
             MessageDialog.openError(getShell(), "Error", "Script name cannot be empty");
             return;
         }
-        if (scriptData == null)
+        if (scriptData == null) {
             scriptData = new ScriptData();
+        }
 
         scriptData.setEmbedded(true);
         scriptData.setScriptName(nameText.getText());
@@ -68,7 +72,7 @@ public class EmbeddedScriptEditDialog extends HelpTrayDialog {
 
     @Override
     protected String getHelpResourcePath() {
-        return "/" + OPIBuilderPlugin.PLUGIN_ID + "/html/Script.html"; //$NON-NLS-1$ ; //$NON-NLS-2$
+        return "/" + OPIBuilderPlugin.PLUGIN_ID + "/html/Script.html";
     }
 
     public ScriptData getResult() {
@@ -106,9 +110,9 @@ public class EmbeddedScriptEditDialog extends HelpTrayDialog {
         createLabel(dialogArea, "Name: ");
         GridData gd = new GridData(SWT.FILL, SWT.BEGINNING, true, false);
         nameText = new Text(dialogArea, SWT.BORDER);
-        if (scriptData != null)
+        if (scriptData != null) {
             nameText.setText(scriptData.getScriptName());
-        else {
+        } else {
             nameText.setText("EmbeddedScript");
             nameText.selectAll();
         }
@@ -116,22 +120,27 @@ public class EmbeddedScriptEditDialog extends HelpTrayDialog {
         createLabel(dialogArea, "Script Type: ");
         scriptTypeCombo = new Combo(dialogArea, SWT.DROP_DOWN | SWT.READ_ONLY);
         scriptTypeCombo.setItems(ScriptType.stringValues());
-        if (scriptData != null)
+        if (scriptData != null) {
             scriptTypeCombo.select(scriptData.getScriptType().ordinal());
-        else
+        } else {
             scriptTypeCombo.select(0);
+        }
 
-        /*-scriptTypeCombo.addSelectionListener(new SelectionAdapter() {
+        scriptTypeCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (scriptData == null) {
                     if (scriptTypeCombo.getSelectionIndex() == ScriptType.JAVASCRIPT.ordinal() &&
-                            scriptText.getText().trim().equals(ScriptService.DEFAULT_PYTHONSCRIPT_HEADER.trim()))
+                            scriptText.getText().trim().equals(ScriptService.DEFAULT_PYTHONSCRIPT_HEADER.trim())) {
                         scriptText.setText(ScriptService.DEFAULT_JS_HEADER);
+                    } else if (scriptTypeCombo.getSelectionIndex() == ScriptType.PYTHON.ordinal() &&
+                            scriptText.getText().trim().equals(ScriptService.DEFAULT_JS_HEADER.trim())) {
+                        scriptText.setText(ScriptService.DEFAULT_PYTHONSCRIPT_HEADER);
+                    }
                 }
-        
+
             }
-        });*/
+        });
         scriptTypeCombo.setLayoutData(gd);
         scriptText = new Text(dialogArea, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
         gd = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -139,10 +148,11 @@ public class EmbeddedScriptEditDialog extends HelpTrayDialog {
         gd.widthHint = 400;
         gd.heightHint = 200;
         scriptText.setLayoutData(gd);
-        if (scriptData != null)
+        if (scriptData != null) {
             scriptText.setText(scriptData.getScriptText());
-        else
+        } else {
             scriptText.setText(ScriptService.DEFAULT_JS_HEADER);
+        }
         return this.dialogArea;
     }
 }

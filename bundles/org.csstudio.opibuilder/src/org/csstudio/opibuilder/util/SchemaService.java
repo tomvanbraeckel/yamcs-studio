@@ -1,8 +1,7 @@
 package org.csstudio.opibuilder.util;
 
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -15,16 +14,12 @@ import org.csstudio.opibuilder.model.DisplayModel;
 import org.csstudio.opibuilder.persistence.XMLUtil;
 import org.csstudio.opibuilder.preferences.PreferencesHelper;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Display;
 
 public final class SchemaService {
 
     private static SchemaService instance;
     private Map<String, AbstractWidgetModel> schemaWidgetsMap;
-
 
     /*
      * Instantiating the schema service with the modal process dialog uses the UI thread.
@@ -35,144 +30,90 @@ public final class SchemaService {
      * Instance of SchemaService without dialog is created from first instance of WidgetNodeEditPolicy
     */
 
-
-    private SchemaService(boolean dialog) {
+    private SchemaService() {
         schemaWidgetsMap = new HashMap<>();
-        if (dialog){
-          reLoad();
-        }
-        else {
-          reLoadNoProgressMonitor();
-        }
+        reload();
     }
 
     public static final synchronized SchemaService getInstance() {
-        if (instance == null)
-            instance = new SchemaService(true);
+        if (instance == null) {
+            instance = new SchemaService();
+        }
         return instance;
     }
 
-    public static final synchronized SchemaService getInstance(boolean dialog) {
-        if (instance == null)
-            instance = new SchemaService(dialog);
-        return instance;
-    }
-
-    /**
-     * Reloading schema OPI without the progress monitor
-     */
-
-    public void reLoadNoProgressMonitor() {
+    public void reload() {
         schemaWidgetsMap.clear();
-        final IPath schemaOPI = PreferencesHelper.getSchemaOPIPath();
+        IPath schemaOPI = PreferencesHelper.getSchemaOPIPath();
         if (schemaOPI == null || schemaOPI.isEmpty()) {
             return;
         }
-        OPIBuilderPlugin.getLogger().log(Level.INFO, () -> "Schema service: connecting to " + schemaOPI);
         loadSchema(schemaOPI);
     }
 
-    /**
-     * Reload schema opi.
-     */
-    public void reLoad() {
-        schemaWidgetsMap.clear();
-        final IPath schemaOPI = PreferencesHelper.getSchemaOPIPath();
-        if (schemaOPI == null || schemaOPI.isEmpty()) {
-            return;
-        }
-        if(Display.getCurrent() != null){ // in UI thread, show progress dialog
-            IRunnableWithProgress job = new IRunnableWithProgress() {
-
-                @Override
-                public void run(IProgressMonitor monitor) throws InvocationTargetException,
-                        InterruptedException {
-                    monitor.beginTask("Connecting to " + schemaOPI,IProgressMonitor.UNKNOWN);
-                    loadSchema(schemaOPI);
-                    monitor.done();
-                }
-            };
-            try {
-                new ProgressMonitorDialog(
-                        Display.getCurrent().getActiveShell()).run(true, false, job);
-            } catch (Exception e) {
-                ErrorHandlerUtil.handleError("Failed to load schema", e);
-            }
-        }
-        else
-            loadSchema(schemaOPI);
-    }
-
-    /**
-     * @param schemaOPI
-     */
-    public void loadSchema(final IPath schemaOPI) {
-        InputStream inputStream = null;
-        try {
-            inputStream = ResourceUtil.pathToInputStream(schemaOPI, false);
+    public void loadSchema(IPath schemaOPI) {
+        try (InputStream inputStream = ResourceUtil.pathToInputStream(schemaOPI)) {
             DisplayModel displayModel = new DisplayModel(schemaOPI);
             XMLUtil.fillDisplayModelFromInputStream(inputStream,
                     displayModel, Display.getDefault());
             schemaWidgetsMap.put(displayModel.getTypeID(), displayModel);
             loadModelFromContainer(displayModel);
-            if(!displayModel.getConnectionList().isEmpty()){
+            if (!displayModel.getConnectionList().isEmpty()) {
                 schemaWidgetsMap.put(
                         ConnectionModel.ID, displayModel.getConnectionList().get(0));
             }
+        } catch (FileNotFoundException e) {
+            OPIBuilderPlugin.getLogger().log(Level.WARNING, "Cannot locate OPI Schema: " + schemaOPI, e);
         } catch (Exception e) {
-            String message = "Failed to load schema file: " + schemaOPI;
-            OPIBuilderPlugin.getLogger().log(Level.WARNING,
-                    message, e);
-            ConsoleService.getInstance().writeError(message + "\n" + e);//$NON-NLS-1$
-        }
-        finally {
-           if (inputStream != null)
-            try {
-                inputStream.close();
-            } catch (IOException e) {
-                ErrorHandlerUtil.handleError("Failed to close stream", e);
-            }
+            OPIBuilderPlugin.getLogger().log(Level.WARNING, "Failed to load OPI Schema: " + schemaOPI, e);
         }
     }
 
     private void loadModelFromContainer(AbstractContainerModel containerModel) {
-        for(AbstractWidgetModel model : containerModel.getChildren()){
-            //always add only the first model of its type that is found
-            //the main container might contain several instances of the same widget
-            //(e.g. GroupingContainer can appear multiple times; it is by default the base
-            //layer of a tab and sash - we don't want the tab to override our container settings)
+        for (AbstractWidgetModel model : containerModel.getChildren()) {
+            // always add only the first model of its type that is found
+            // the main container might contain several instances of the same widget
+            // (e.g. GroupingContainer can appear multiple times; it is by default the base
+            // layer of a tab and sash - we don't want the tab to override our container settings)
             if (!schemaWidgetsMap.containsKey(model.getTypeID())) {
                 schemaWidgetsMap.put(model.getTypeID(), model);
             }
-            if(model instanceof AbstractContainerModel)
-                    loadModelFromContainer((AbstractContainerModel) model);
+            if (model instanceof AbstractContainerModel) {
+                loadModelFromContainer((AbstractContainerModel) model);
+            }
         }
     }
 
     public void applySchema(AbstractWidgetModel widgetModel) {
-        if (schemaWidgetsMap.isEmpty())
+        if (schemaWidgetsMap.isEmpty()) {
             return;
+        }
         if (schemaWidgetsMap.containsKey(widgetModel.getTypeID())) {
             AbstractWidgetModel schemaWidgetModel = schemaWidgetsMap
                     .get(widgetModel.getTypeID());
             for (String id : schemaWidgetModel.getAllPropertyIDs()) {
-                widgetModel.setPropertyValue(id,schemaWidgetModel.getPropertyValue(id), false);
+                widgetModel.setPropertyValue(id, schemaWidgetModel.getPropertyValue(id), false);
             }
         }
     }
 
-    /**Return the default property value of the widget when it is created.
-     * @param typeId typeId of the widget.
-     * @param propId propId of the property.
+    /**
+     * Return the default property value of the widget when it is created.
+     * 
+     * @param typeId
+     *            typeId of the widget.
+     * @param propId
+     *            propId of the property.
      */
-    public Object getDefaultPropertyValue(String typeId, String propId){
-        if(schemaWidgetsMap.containsKey(typeId))
-                return schemaWidgetsMap.get(typeId).getPropertyValue(propId);
+    public Object getDefaultPropertyValue(String typeId, String propId) {
+        if (schemaWidgetsMap.containsKey(typeId)) {
+            return schemaWidgetsMap.get(typeId).getPropertyValue(propId);
+        }
         WidgetDescriptor desc = WidgetsService.getInstance().getWidgetDescriptor(typeId);
-        if(desc != null){
+        if (desc != null) {
             return desc.getWidgetModel().getPropertyValue(propId);
         }
-        if(typeId.equals(ConnectionModel.ID)){
+        if (typeId.equals(ConnectionModel.ID)) {
             return new ConnectionModel(null).getPropertyValue(propId);
         }
         return null;

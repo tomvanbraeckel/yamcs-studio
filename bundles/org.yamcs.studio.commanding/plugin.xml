@@ -48,13 +48,28 @@
       </command>
       <command
             categoryId="org.yamcs.studio"
+            id="org.yamcs.studio.commanding.stack.armAll"
+            name="Arm All Commands">
+      </command>
+      <command
+            categoryId="org.yamcs.studio"
             id="org.yamcs.studio.commanding.stack.issue"
             name="Issue Command">
       </command>
       <command
             categoryId="org.yamcs.studio"
+            id="org.yamcs.studio.commanding.stack.issueAll"
+            name="Issue All Commands">
+      </command>
+      <command
+            categoryId="org.yamcs.studio"
             id="org.yamcs.studio.commanding.stack.export"
             name="Export Stack">
+      </command>
+      <command
+            categoryId="org.yamcs.studio"
+            id="org.yamcs.studio.commanding.stack.exportSpell"
+            name="Export Stack to SPELL procedure...">
       </command>
       <command
             categoryId="org.yamcs.studio"
@@ -188,12 +203,34 @@
             commandId="org.yamcs.studio.commanding.stack.arm">
       </handler>
       <handler
+            class="org.yamcs.studio.commanding.stack.ArmAllCommandHandler"
+            commandId="org.yamcs.studio.commanding.stack.armAll">
+      </handler>
+      <handler
             class="org.yamcs.studio.commanding.stack.IssueCommandHandler"
             commandId="org.yamcs.studio.commanding.stack.issue">
       </handler>
       <handler
+            class="org.yamcs.studio.commanding.stack.IssueAllCommandsHandler"
+            commandId="org.yamcs.studio.commanding.stack.issueAll">
+      </handler>
+      <handler
             class="org.yamcs.studio.commanding.stack.ExportCommandStackHandler"
             commandId="org.yamcs.studio.commanding.stack.export">
+         <activeWhen>
+            <and>
+               <with variable="org.yamcs.studio.commanding.stack.state.remaining">
+                  <equals value="true"/>
+               </with>
+               <with variable="org.yamcs.studio.ui.authorization.mayCommandPayload">
+                  <equals value="true"/>
+               </with>
+            </and>
+         </activeWhen>
+      </handler>
+      <handler
+            class="org.yamcs.studio.commanding.stack.ExportCommandStackHandlerSpell"
+            commandId="org.yamcs.studio.commanding.stack.exportSpell">
          <activeWhen>
             <and>
                <with variable="org.yamcs.studio.commanding.stack.state.remaining">
@@ -311,11 +348,12 @@
    <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="toolbar:org.yamcs.studio.commanding.stack.CommandStackView">
          <command
+               id="org.yamcs.studio.commanding.stack.exportDropdown"
                commandId="org.yamcs.studio.commanding.stack.export"
                icon="icons/elcl16/export_log.png"
                disabledIcon="icons/dlcl16/export_log.png"
                label="Export Stack"
-               style="push"/>
+               style="pulldown"/>
          <command
                commandId="org.yamcs.studio.commanding.stack.import"
                icon="icons/elcl16/import_log.png"
@@ -357,6 +395,22 @@
          <control class="org.yamcs.studio.core.ui.utils.ToolbarSpacer"/>
       </menuContribution>
       
+       <menuContribution
+            locationURI="menu:org.yamcs.studio.commanding.stack.exportDropdown">
+          <command
+               commandId="org.yamcs.studio.commanding.stack.export"
+               icon="icons/elcl16/export_log.png"
+               disabledIcon="icons/dlcl16/export_log.png"
+               label="Export Stack to XML..."
+               style="push"/>
+          <command
+               commandId="org.yamcs.studio.commanding.stack.exportSpell"
+               icon="icons/elcl16/export_log.png"
+               disabledIcon="icons/dlcl16/export_log.png"
+               label="Export Stack to SPELL procedure..."
+               style="push"/>
+      </menuContribution>
+      
       <menuContribution locationURI="toolbar:org.yamcs.studio.commanding.cmdhist.CommandHistoryView">
          <command
                commandId="org.yamcs.studio.commanding.cmdhist.exportCommand"
@@ -383,6 +437,8 @@
                label="Fetch Commands"
                style="push"/>
       </menuContribution>
+      
+     
       
       <menuContribution locationURI="popup:org.yamcs.studio.commanding.cmdhist.CommandHistoryView">
          <command
@@ -432,6 +488,12 @@
                   label="Sequence Number">
                <parameter
                      name="org.yamcs.studio.commanding.cmdhist.copyDetails.property" value="SEQNO" />
+            </command>
+            <command
+                  commandId="org.yamcs.studio.commanding.cmdhist.copyDetailsCommand"
+                  label="Binary">
+               <parameter
+                     name="org.yamcs.studio.commanding.cmdhist.copyDetails.property" value="BIN" />
             </command>
          </menu>
       </menuContribution>

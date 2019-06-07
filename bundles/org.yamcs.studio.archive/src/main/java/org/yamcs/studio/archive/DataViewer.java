@@ -15,8 +15,8 @@ import org.yamcs.protobuf.Yamcs.ArchiveTag;
 import org.yamcs.studio.archive.TagBox.TagEvent;
 
 /**
- * Adds controls to a wrapped {@link org.yamcs.archivebrowser.DataView} TODO merge with DataView.
- * There are no more controls to be found here.
+ * Adds controls to a wrapped {@link org.yamcs.archivebrowser.DataView} TODO merge with DataView. There are no more
+ * controls to be found here.
  */
 public class DataViewer extends JPanel implements ActionListener {
     private static final long serialVersionUID = 1L;
@@ -42,6 +42,10 @@ public class DataViewer extends JPanel implements ActionListener {
         addIndex("pp", "pp histogram", 1000);
         addIndex("cmdhist", "cmdhist histogram", 1000);
         addVerticalGlue();
+    }
+    
+    public void clearView() {
+        this.dataView.clearArchiveRecords();
     }
 
     public void signalSelectionChange(Selection selection) {
@@ -88,10 +92,10 @@ public class DataViewer extends JPanel implements ActionListener {
         } else if (cmd.toLowerCase().endsWith("selection_finished")) {
             archivePanel.archiveView.setTagEnabled(true);
             if (cmd.startsWith("pp") || cmd.startsWith("tm")) {
-                //packetRetrieval.setEnabled(true);
-                //parameterRetrieval.setEnabled(true);
+                // packetRetrieval.setEnabled(true);
+                // parameterRetrieval.setEnabled(true);
             } else if (cmd.startsWith("cmdhist")) {
-                //cmdHistRetrieval.setEnabled(true);
+                // cmdHistRetrieval.setEnabled(true);
             }
         } else if (cmd.equalsIgnoreCase("selection_reset")) {
             archivePanel.archiveView.setTagEnabled(false);
@@ -134,11 +138,11 @@ public class DataViewer extends JPanel implements ActionListener {
     }
 
     public void receiveArchiveRecords(Yamcs.IndexResult ir) {
-        if ("completeness".equals(ir.getType())) {
+        if ("COMPLETENESS".equals(ir.getType())) {
             if (dataView.indexBoxes.containsKey("completeness")) {
                 dataView.indexBoxes.get("completeness").receiveArchiveRecords(ir.getRecordsList());
             }
-        } else if ("histogram".equals(ir.getType())) {
+        } else if ("HISTOGRAM".equals(ir.getType())) {
             String tableName = ir.getTableName();
             if (dataView.indexBoxes.containsKey(tableName)) {
                 dataView.indexBoxes.get(tableName).receiveArchiveRecords(ir.getRecordsList());

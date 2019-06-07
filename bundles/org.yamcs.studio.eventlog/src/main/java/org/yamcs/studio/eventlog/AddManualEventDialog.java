@@ -20,22 +20,17 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.yamcs.protobuf.Yamcs.Event.EventSeverity;
 import org.yamcs.studio.core.model.EventCatalogue;
-import org.yamcs.studio.core.model.TimeCatalogue;
-import org.yamcs.studio.core.security.YamcsAuthorizations;
 import org.yamcs.studio.core.ui.utils.RCPUtils;
 import org.yamcs.utils.TimeEncoding;
 
 public class AddManualEventDialog extends TitleAreaDialog {
 
-    static int sequenceNumber = 0;
-    Calendar generationTimeValue = null;
+    private Calendar generationTimeValue = null;
 
     private Text messageText;
     private DateTime generationDatePicker;
     private DateTime generationTimePicker;
-    Label userLbl = null;
-    Text userText = null;
-    Combo severityCombo;
+    private Combo severityCombo;
 
     protected AddManualEventDialog(Shell shell) {
         super(shell);
@@ -44,7 +39,6 @@ public class AddManualEventDialog extends TitleAreaDialog {
     protected AddManualEventDialog(Shell shell, long generationTime) {
         super(shell);
         generationTimeValue = TimeEncoding.toCalendar(generationTime);
-        // defaultGenerationTime = generationTime;
     }
 
     @Override
@@ -52,17 +46,6 @@ public class AddManualEventDialog extends TitleAreaDialog {
         super.create();
         setTitle("Add a Manual Event");
     }
-
-    // private void validate() {
-    // String errorMessage = null;
-    // Calendar start = RCPUtils.toCalendar(startDate, startTime);
-    // Calendar stop = RCPUtils.toCalendar(stopDate, stopTime);
-    // if (start.after(stop))
-    // errorMessage = "Stop has to be greater than start";
-    //
-    // setErrorMessage(errorMessage);
-    // getButton(IDialogConstants.OK_ID).setEnabled(errorMessage == null);
-    // }
 
     @Override
     protected Control createDialogArea(Composite parent) {
@@ -78,7 +61,28 @@ public class AddManualEventDialog extends TitleAreaDialog {
         container.setLayout(layout);
 
         Label lbl = new Label(container, SWT.NONE);
-        lbl.setText("Generation Time:");
+        lbl.setText("Message");
+        GridData gd = new GridData(GridData.FILL_VERTICAL);
+        lbl.setLayoutData(gd);
+        gd.verticalAlignment = SWT.TOP;
+        messageText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+        gd = new GridData(GridData.FILL_BOTH);
+        gd.verticalAlignment = SWT.TOP;
+        gd.grabExcessHorizontalSpace = true;
+        gd.grabExcessVerticalSpace = true;
+        messageText.setLayoutData(gd);
+        GC gc = new GC(messageText);
+        try {
+            gc.setFont(messageText.getFont());
+            FontMetrics fm = gc.getFontMetrics();
+            gd.heightHint = 5 * fm.getHeight();
+        } finally {
+            gc.dispose();
+        }
+        messageText.setText("");
+
+        lbl = new Label(container, SWT.NONE);
+        lbl.setText("Event Time");
         Composite startComposite = new Composite(container, SWT.NONE);
         RowLayout rl = new RowLayout();
         rl.marginLeft = 0;
@@ -87,11 +91,7 @@ public class AddManualEventDialog extends TitleAreaDialog {
         rl.center = true;
         startComposite.setLayout(rl);
         generationDatePicker = new DateTime(startComposite, SWT.DATE | SWT.LONG | SWT.DROP_DOWN | SWT.BORDER);
-        // generationDatePicker.addListener(SWT.Selection, e -> validate());
-        // generationDatePicker.addListener(SWT.FocusOut, e -> validate());
         generationTimePicker = new DateTime(startComposite, SWT.TIME | SWT.LONG | SWT.BORDER);
-        // generationTimePicker.addListener(SWT.Selection, e -> validate());
-        // generationTimePicker.addListener(SWT.FocusOut, e -> validate());
         if (generationTimeValue != null) {
             generationDatePicker.setDate(generationTimeValue.get(Calendar.YEAR),
                     generationTimeValue.get(Calendar.MONTH), generationTimeValue.get(Calendar.DAY_OF_MONTH));
@@ -100,103 +100,41 @@ public class AddManualEventDialog extends TitleAreaDialog {
         }
 
         lbl = new Label(container, SWT.NONE);
-        lbl.setText("Source:");
-        lbl = new Label(container, SWT.NONE);
-        lbl.setText("Manual");
-
-        lbl = new Label(container, SWT.NONE);
-        lbl.setText("User:");
-        if (YamcsAuthorizations.getInstance().isAuthorizationEnabled()) {
-            userLbl = new Label(container, SWT.NONE);
-            userLbl.setText(YamcsAuthorizations.getInstance().getUsername());
-        } else {
-            userText = new Text(container, SWT.SINGLE);
-            userText.setLayoutData(new GridData(GridData.FILL_BOTH));
-            userText.setText("");
-        }
-
-        lbl = new Label(container, SWT.NONE);
-        lbl.setText("Message:");
-        messageText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-        GridData data = new GridData(GridData.FILL_BOTH);
-        data.verticalAlignment = SWT.CENTER;
-        data.grabExcessHorizontalSpace = true;
-        data.grabExcessVerticalSpace = true;
-        messageText.setLayoutData(data);
-        GC gc = new GC(messageText);
-        try {
-            gc.setFont(messageText.getFont());
-            FontMetrics fm = gc.getFontMetrics();
-
-            /* Set the height to 5 rows of characters */
-            data.heightHint = 5 * fm.getHeight();
-        } finally {
-            gc.dispose();
-        }
-        messageText.setText("");
-
-        lbl = new Label(container, SWT.NONE);
-        lbl.setText("Severity:");
-        severityCombo = new Combo(container, SWT.DROP_DOWN);
-        severityCombo.add(EventSeverity.INFO.name(), EventSeverity.INFO_VALUE);
-        severityCombo.add(EventSeverity.WARNING.name(), EventSeverity.WARNING_VALUE);
-        severityCombo.add(EventSeverity.ERROR.name(), EventSeverity.ERROR_VALUE);
-        severityCombo.add(EventSeverity.WATCH.name(), EventSeverity.WATCH_VALUE);
-        severityCombo.add(EventSeverity.DISTRESS.name(), EventSeverity.DISTRESS_VALUE -1 ); //TODO use index, 
-        severityCombo.add(EventSeverity.CRITICAL.name(), EventSeverity.CRITICAL_VALUE -1);  //the value skips 4  
-        severityCombo.add(EventSeverity.SEVERE.name(), EventSeverity.SEVERE_VALUE -1);
-        severityCombo.select(EventSeverity.INFO_VALUE);
+        lbl.setText("Severity");
+        severityCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+        severityCombo.add(EventSeverity.INFO.name());
+        severityCombo.add(EventSeverity.WATCH.name());
+        severityCombo.add(EventSeverity.WARNING.name());
+        severityCombo.add(EventSeverity.DISTRESS.name());
+        severityCombo.add(EventSeverity.CRITICAL.name());
+        severityCombo.add(EventSeverity.SEVERE.name());
+        severityCombo.select(0);
 
         return container;
     }
 
     @Override
     protected void okPressed() {
-        String source = "Manual";
-        if (userText != null && !userText.getText().isEmpty()) {
-            source += " :: " + userText.getText();
-        } else if (userLbl != null) {
-            source += " :: " + userLbl.getText();
-        }
         String message = messageText.getText();
-        long generationTime = TimeEncoding
-                .fromCalendar(RCPUtils.toCalendar(generationDatePicker, generationTimePicker));
-        long receptionTime = TimeCatalogue.getInstance().getMissionTime();
-        EventSeverity severity = EventSeverity.internalGetValueMap()
-                .findValueByNumber(severityCombo.getSelectionIndex() > 3?
-                        severityCombo.getSelectionIndex() +1 :severityCombo.getSelectionIndex()); 
+        Calendar cal = RCPUtils.toCalendar(generationDatePicker, generationTimePicker);
+        String severityString = severityCombo.getItem(severityCombo.getSelectionIndex());
+        EventSeverity severity = EventSeverity.valueOf(severityString);
 
         EventCatalogue catalogue = EventCatalogue.getInstance();
-        try {
-            catalogue.createEvent(source, sequenceNumber++, message, generationTime, receptionTime, severity)
-                    .whenComplete((data, exc) -> {
-                        if (exc == null) {
-                            Display.getDefault().asyncExec(() -> {
-                                // MessageBox m = new MessageBox(getShell(),
-                                // SWT.OK | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL);
-                                // m.setText("Ok");
-                                // m.setMessage("Added the manual event successfully.\n" + new String(data));
-                                // m.open();
-                                close();
-                            });
-                        } else {
-                            Display.getDefault().asyncExec(() -> {
-                                MessageBox m = new MessageBox(getShell(),
-                                        SWT.OK | SWT.ICON_ERROR | SWT.APPLICATION_MODAL);
-                                m.setText("Error");
-                                m.setMessage(exc.getMessage());
-                                m.open();
-                            });
-                        }
-                    });
-        } catch (Exception e) {
-            Display.getDefault().asyncExec(() -> {
-                MessageBox m = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR | SWT.APPLICATION_MODAL);
-                m.setText("Error");
-                m.setMessage("Error: " + e.getMessage());
-                m.open();
-            });
-        }
+        catalogue.createEvent(message, cal.getTime(), severity)
+                .whenComplete((data, exc) -> {
+                    if (exc == null) {
+                        Display.getDefault().asyncExec(() -> close());
+                    } else {
+                        Display.getDefault().asyncExec(() -> {
+                            MessageBox m = new MessageBox(getShell(),
+                                    SWT.OK | SWT.ICON_ERROR | SWT.APPLICATION_MODAL);
+                            m.setText("Error");
+                            m.setMessage(exc.getMessage());
+                            m.open();
+                        });
+                    }
+                });
 
     }
 
